@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя</title>
+    <link rel="stylesheet" href="static/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="sidebar">
+            <div class="logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/dashboard.html">Задачи</a></li>
+                <li class="active"><a href="#profile">Профиль</a></li>
+                <li><a href="#" id="logoutBtn">Выход</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2>Мой профиль</h2>
+            </header>
+
+            <div class="profile-container">
+                <div class="profile-info">
+                    <h3>Информация</h3>
+                    <p>Email: <span id="userEmail"></span></p>
+                    <p>Дата регистрации: <span id="userCreatedAt"></span></p>
+                </div>
+
+                <div class="password-change">
+                    <h3>Изменить пароль</h3>
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Текущий пароль</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Новый пароль</label>
+                            <input type="password" id="newPassword" name="newPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Подтвердите новый пароль</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        <div class="error-message" id="passwordError"></div>
+                        <div class="success-message" id="passwordSuccess"></div>
+                        <button type="submit" class="btn-primary">Сменить пароль</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="static/js/profile.js"></script>
+</body>
+</html>
