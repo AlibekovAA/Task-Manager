@@ -20,7 +20,9 @@ def create_admin_user():
                 email=ADMIN_EMAIL,
                 password=ADMIN_PASSWORD
             )
-            crud.create_user(db=db, user=admin_user)
+            admin = crud.create_user(db=db, user=admin_user)
+            admin.role = "admin"  # Устанавливаем роль админа
+            db.commit()
             logger.info("Admin user created successfully")
         else:
             logger.info("Admin user already exists")

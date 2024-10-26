@@ -15,7 +15,9 @@ import backend.auth as auth
 from backend.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from backend.utils import create_admin_user, get_db
 from backend.database import engine
+from backend.logger import setup_logger
 
+logger = setup_logger(__name__)
 
 models.Base.metadata.create_all(bind=engine)
 create_admin_user()
@@ -68,13 +70,15 @@ def read_users_me(current_user: current_user_dependency):
 
 
 @app.post("/token", response_model=schemas.Token)
-def login_for_access_token(db: Annotated[Session, Depends(get_db)],
-                           form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+def login_for_access_token(
+    db: Annotated[Session, Depends(get_db)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
     user = auth.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Неверный email или пароль, либо аккаунт заблокирован",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -212,3 +216,54 @@ async def read_register():
 @app.get('/favicon.ico')
 async def favicon():
     return FileResponse('frontend/static/images/favicon.ico')
+
+
+def get_admin_user(current_user: current_user_dependency):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    return current_user
+
+
+admin_user_dependency = Annotated[schemas.User, Depends(get_admin_user)]
+db_admin_dependency = Annotated[Session, Depends(get_db)]
+
+
+@app.get("/admin/users/", response_model=List[schemas.UserResponse])
+def list_all_users(
+    current_user: admin_user_dependency,
+    db: db_admin_dependency,
+    skip: int = 0,
+    limit: int = 10
+):
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
+
+
+@app.put("/admin/users/{user_id}/block", response_model=schemas.UserResponse)
+def block_user(
+    user_id: int,
+    block_update: schemas.UserBlockUpdate,
+    current_user: admin_user_dependency,
+    db: db_admin_dependency
+):
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot block yourself"
+        )
+
+    db_user = crud.get_user(db, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_user.is_active = block_update.is_active
+    db.commit()
+    db.refresh(db_user)
+
+    action = "unblocked" if block_update.is_active else "blocked"
+    logger.info(f"Admin {current_user.email} {action} user {db_user.email}")
+
+    return db_user

@@ -16,6 +16,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=False)
+    role = Column(String, default='default', nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
 
     def validate_email(self):

@@ -75,3 +75,18 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+
+
+class UserBlockUpdate(BaseModel):
+    is_active: bool
+
+
+class UserResponse(UserBase):
+    id: int
+    email: str
+    created_at: datetime
+    role: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True

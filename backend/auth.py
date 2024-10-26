@@ -40,6 +40,9 @@ def authenticate_user(db: Session, email: str, password: str):
         if not user:
             logger.warning(f"Authentication failed: user not found for email {email}")
             return False
+        if not user.is_active:
+            logger.warning(f"Authentication failed: user {email} is blocked")
+            return False
         if not verify_password(password, user.password_hash):
             logger.warning(f"Authentication failed: invalid password for user {email}")
             return False
