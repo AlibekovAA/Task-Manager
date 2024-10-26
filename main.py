@@ -1,18 +1,20 @@
+from datetime import timedelta
+from typing import Annotated, List
+
 from fastapi import FastAPI, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import timedelta
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from jose import JWTError
+
 import backend.models as models
 import backend.schemas as schemas
 import backend.crud as crud
 import backend.auth as auth
 from backend.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from backend.utils import create_admin_user, get_db
-from typing import Annotated, List
 from backend.database import engine
-from jose import JWTError
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 
 models.Base.metadata.create_all(bind=engine)

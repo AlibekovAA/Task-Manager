@@ -1,9 +1,10 @@
+import traceback
+
 import backend.crud as crud
 import backend.schemas as schemas
 from backend.database import SessionLocal
 from backend.config import ADMIN_EMAIL, ADMIN_PASSWORD
 from backend.logger import setup_logger
-import traceback
 
 logger = setup_logger(__name__)
 

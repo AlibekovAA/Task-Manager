@@ -1,8 +1,10 @@
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
 from typing import Optional
+
+from passlib.context import CryptContext
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+
 from . import crud
 from .config import SECRET_KEY, ALGORITHM
 

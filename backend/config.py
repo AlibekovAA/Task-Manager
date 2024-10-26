@@ -1,5 +1,7 @@
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+
 from .logger import setup_logger
 
 logger = setup_logger(__name__)
