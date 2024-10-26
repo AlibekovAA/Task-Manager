@@ -3,6 +3,10 @@ from typing import List
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 class TaskBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
@@ -16,7 +20,9 @@ class TaskCreate(TaskBase):
     @classmethod
     def validate_due_date(cls, v: datetime | None) -> datetime | None:
         if v is not None and v < datetime.now():
+            logger.warning(f"Invalid due date: {v} is in the past")
             raise ValueError('Дата и время выполнения не могут быть в прошлом')
+        logger.debug(f"Due date validation successful: {v}")
         return v
 
 

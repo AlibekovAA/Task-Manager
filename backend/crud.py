@@ -4,14 +4,35 @@ from sqlalchemy import desc
 from . import models
 from . import schemas
 from .auth import get_password_hash
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            logger.info(f"Retrieved user with id: {user_id}")
+        else:
+            logger.warning(f"User not found with id: {user_id}")
+        return user
+    except Exception as e:
+        logger.error(f"Error retrieving user {user_id}: {e}")
+        raise
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+    try:
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if user:
+            logger.info(f"Retrieved user with email: {email}")
+        else:
+            logger.warning(f"User not found with email: {email}")
+        return user
+    except Exception as e:
+        logger.error(f"Error retrieving user by email {email}: {e}")
+        raise
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 10):
@@ -19,15 +40,21 @@ def get_users(db: Session, skip: int = 0, limit: int = 10):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    hashed_password = get_password_hash(user.password)
-    db_user = models.User(
-        email=user.email,
-        password_hash=hashed_password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        hashed_password = get_password_hash(user.password)
+        db_user = models.User(
+            email=user.email,
+            password_hash=hashed_password
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"Created new user with email: {user.email}")
+        return db_user
+    except Exception as e:
+        logger.error(f"Error creating user {user.email}: {e}")
+        db.rollback()
+        raise
 
 
 def delete_user(db: Session, user_id: int):
@@ -77,17 +104,23 @@ def get_user_tasks(
 
 
 def create_task(db: Session, task: schemas.TaskCreate, user_id: int):
-    db_task = models.Task(
-        title=task.title,
-        description=task.description,
-        completed=task.completed,
-        due_date=task.due_date,
-        user_id=user_id
-    )
-    db.add(db_task)
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+    try:
+        db_task = models.Task(
+            title=task.title,
+            description=task.description,
+            completed=task.completed,
+            due_date=task.due_date,
+            user_id=user_id
+        )
+        db.add(db_task)
+        db.commit()
+        db.refresh(db_task)
+        logger.info(f"Created new task '{task.title}' for user {user_id}")
+        return db_task
+    except Exception as e:
+        logger.error(f"Error creating task for user {user_id}: {e}")
+        db.rollback()
+        raise
 
 
 def update_task(db: Session, task_id: int, user_id: int, task_update: schemas.TaskBase):

@@ -4,6 +4,9 @@ from sqlalchemy.sql import func
 from email_validator import validate_email, EmailNotValidError
 
 from .database import Base
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class User(Base):
@@ -18,8 +21,10 @@ class User(Base):
     def validate_email(self):
         try:
             validate_email(self.email)
+            logger.debug(f"Email validation successful for {self.email}")
             return True
-        except EmailNotValidError:
+        except EmailNotValidError as e:
+            logger.warning(f"Invalid email {self.email}: {str(e)}")
             return False
 
 

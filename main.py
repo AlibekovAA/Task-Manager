@@ -207,3 +207,8 @@ async def read_profile():
 @app.get("/register.html")
 async def read_register():
     return FileResponse("frontend/register.html")
+
+
+@app.get('/favicon.ico')
+async def favicon():
+    return FileResponse('frontend/static/favicon.ico')
