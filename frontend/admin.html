@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link rel="stylesheet" href="static/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="sidebar">
+            <div class="logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/dashboard.html">Задачи</a></li>
+                <li><a href="/profile.html">Профиль</a></li>
+                <li class="active"><a href="/admin.html">Управление пользователями</a></li>
+                <li><a href="#" id="logoutBtn">Выход</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2>Управление пользователями</h2>
+            </header>
+
+            <div class="users-container">
+                <div class="users-list" id="usersList">
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <span class="notification-message"></span>
+            <button class="notification-close">&times;</button>
+        </div>
+    </div>
+
+    <script src="static/js/admin.js"></script>
+</body>
+</html>

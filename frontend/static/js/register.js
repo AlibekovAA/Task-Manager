@@ -32,7 +32,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 window.location.href = '/?registered=true';
             } else {
-                errorMessage.textContent = data.detail || 'Ошибка при регистрации';
+                if (response.status === 422) {
+                    const errors = data.detail;
+                    const passwordError = errors.find(error =>
+                        error.loc.includes('password')
+                    );
+                    const emailError = errors.find(error =>
+                        error.loc.includes('email')
+                    );
+
+                    if (passwordError) {
+                        errorMessage.textContent = 'Пароль должен содержать не менее 6 символов';
+                    } else if (emailError) {
+                        errorMessage.textContent = 'Введите корректный email адрес';
+                    } else {
+                        errorMessage.textContent = 'Проверьте правильность введенных данных';
+                    }
+                } else {
+                    errorMessage.textContent = data.detail || 'Ошибка при регистрации';
+                }
             }
         } catch (error) {
             errorMessage.textContent = 'Ошибка соединения с сервером';

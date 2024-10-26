@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('refresh_token', data.refresh_token);
+                localStorage.setItem('user_role', data.role);
                 window.location.href = '/dashboard.html';
             } else {
                 errorMessage.textContent = data.detail || 'Ошибка авторизации';
@@ -39,3 +41,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+async function refreshToken() {
+    try {
+        const refresh_token = localStorage.getItem('refresh_token');
+        if (!refresh_token) return false;
+
+        const response = await fetch('/token/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access_token);
+            return true;
+        }
+        return false;
+    } catch {
+        return false;
+    }
+}
+
+async function fetchWithToken(url, options = {}) {
+    let token = localStorage.getItem('access_token');
+
+    let response = await fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        const refreshed = await refreshToken();
+        if (refreshed) {
+            token = localStorage.getItem('access_token');
+            response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        } else {
+            window.location.href = '/';
+        }
+    }
+
+    return response;
+}

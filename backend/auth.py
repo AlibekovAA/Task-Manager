@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from . import crud
-from .config import SECRET_KEY, ALGORITHM
+from .config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from .logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -57,9 +57,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     try:
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
+            expire = datetime.now() + timedelta(minutes=15)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         logger.info(f"Access token created for user: {data.get('sub')}")
@@ -79,4 +79,39 @@ def decode_access_token(token: str):
         return None
     except Exception as e:
         logger.error(f"Error decoding token: {e}")
+        return None
+
+
+def create_refresh_token(data: dict):
+    try:
+        to_encode = data.copy()
+        expire = datetime.now() + timedelta(days=30)
+        to_encode.update({"exp": expire, "type": "refresh"})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        logger.info(f"Refresh token created for user: {data.get('sub')}")
+        return encoded_jwt
+    except Exception as e:
+        logger.error(f"Error creating refresh token: {e}")
+        raise
+
+
+def refresh_access_token(refresh_token: str):
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            logger.warning("Invalid token type for refresh")
+            return None
+
+        email: str = payload.get("sub")
+        if email is None:
+            logger.warning("No email in refresh token")
+            return None
+
+        access_token = create_access_token(
+            data={"sub": email},
+            expires_delta=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+        )
+        return access_token
+    except JWTError as e:
+        logger.warning(f"Invalid refresh token: {e}")
         return None

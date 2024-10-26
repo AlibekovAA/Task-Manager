@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
         window.location.href = '/';
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteConfirmModal = document.getElementById('deleteConfirmModal');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const adminMenuItem = document.getElementById('adminMenuItem');
     let taskToDelete = null;
 
     const notification = document.getElementById('notification');
@@ -30,6 +31,34 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         notificationTracker.clearOldNotifications();
     }, 60 * 60 * 1000);
+
+    async function loadUserProfile() {
+        try {
+            const response = await fetch('/users/me/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                if (userData.role === 'admin') {
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'block';
+                    }
+                } else {
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'none';
+                    }
+                }
+            } else if (response.status === 401) {
+                localStorage.removeItem('access_token');
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
 
     async function loadTasks() {
         try {
@@ -297,7 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    loadTasks();
+    await loadUserProfile();
+    await loadTasks();
 
     logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -359,5 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    setInterval(loadTasks, 30000);
+    setInterval(async () => {
+        await loadUserProfile();
+        await loadTasks();
+    }, 30000);
+
 });

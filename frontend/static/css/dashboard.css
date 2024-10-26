@@ -499,3 +499,38 @@ header {
 .btn-success.disabled:hover {
     background-color: #cccccc;
 }
+
+.user-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.user-info p {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.user-actions {
+    margin-left: 1rem;
+}
+
+.btn-danger:disabled,
+.btn-success:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
         window.location.href = '/';
@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordError = document.getElementById('passwordError');
     const passwordSuccess = document.getElementById('passwordSuccess');
     const logoutBtn = document.getElementById('logoutBtn');
+    const adminMenuItem = document.getElementById('adminMenuItem');
 
     async function loadUserProfile() {
         try {
@@ -23,7 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const userData = await response.json();
                 userEmail.textContent = userData.email;
-                userCreatedAt.textContent = new Date(userData.created_at).toLocaleDateString();
+                userCreatedAt.textContent = new Date(userData.created_at).toLocaleString('ru-RU');
+
+                if (userData.role === 'admin') {
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'block';
+                    }
+                } else {
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'none';
+                    }
+                }
             } else if (response.status === 401) {
                 localStorage.removeItem('access_token');
                 window.location.href = '/';
@@ -32,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading profile:', error);
         }
     }
+
+    await loadUserProfile();
 
     passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -47,10 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/users/me/password', {
+            const response = await fetchWithToken('/users/me/password', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -74,8 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('user_role');
         window.location.href = '/';
     });
 
-    loadUserProfile();
+    setInterval(loadUserProfile, 30000);
 });

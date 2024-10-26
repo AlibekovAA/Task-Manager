@@ -12,8 +12,6 @@ logger = setup_logger(__name__)
 def create_admin_user():
     db = SessionLocal()
     try:
-        logger.info(f"Trying to create admin user with email: {ADMIN_EMAIL}")
-
         admin = crud.get_user_by_email(db, ADMIN_EMAIL)
         if not admin:
             admin_user = schemas.UserCreate(
@@ -21,7 +19,7 @@ def create_admin_user():
                 password=ADMIN_PASSWORD
             )
             admin = crud.create_user(db=db, user=admin_user)
-            admin.role = "admin"  # Устанавливаем роль админа
+            admin.role = "admin"
             db.commit()
             logger.info("Admin user created successfully")
         else:

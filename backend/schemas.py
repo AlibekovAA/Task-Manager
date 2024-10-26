@@ -59,10 +59,12 @@ class UserUpdate(BaseModel):
     password: str | None = None
 
 
-class User(UserBase):
+class User(BaseModel):
+    email: str
     id: int
     created_at: datetime
-    tasks: List["TaskResponse"] = []
+    role: str
+    tasks: List[TaskResponse] = []
 
     class Config:
         from_attributes = True
@@ -70,6 +72,7 @@ class User(UserBase):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
 

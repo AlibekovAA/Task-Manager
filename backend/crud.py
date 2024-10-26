@@ -58,27 +58,42 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def delete_user(db: Session, user_id: int):
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if db_user:
-        db.delete(db_user)
-        db.commit()
-        return db_user
-    return None
+    try:
+        db_user = db.query(models.User).filter(models.User.id == user_id).first()
+        if db_user:
+            logger.info(f"Deleting user with ID: {user_id}, email: {db_user.email}")
+            db.delete(db_user)
+            db.commit()
+            return db_user
+        logger.warning(f"Attempted to delete non-existent user with ID: {user_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {e}")
+        db.rollback()
+        raise
 
 
 def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if db_user:
-        update_data = user_update.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            if key == "password":
-                db_user.password_hash = get_password_hash(value)
-            else:
-                setattr(db_user, key, value)
-        db.commit()
-        db.refresh(db_user)
-        return db_user
-    return None
+    try:
+        db_user = db.query(models.User).filter(models.User.id == user_id).first()
+        if db_user:
+            update_data = user_update.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                if key == "password":
+                    db_user.password_hash = get_password_hash(value)
+                    logger.info(f"Password updated for user ID: {user_id}")
+                else:
+                    setattr(db_user, key, value)
+                    logger.info(f"Updated {key} for user ID: {user_id}")
+            db.commit()
+            db.refresh(db_user)
+            return db_user
+        logger.warning(f"Attempted to update non-existent user with ID: {user_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error updating user {user_id}: {e}")
+        db.rollback()
+        raise
 
 
 def get_task(db: Session, task_id: int, user_id: int):
@@ -124,19 +139,35 @@ def create_task(db: Session, task: schemas.TaskCreate, user_id: int):
 
 
 def update_task(db: Session, task_id: int, user_id: int, task_update: schemas.TaskBase):
-    db_task = get_task(db, task_id, user_id)
-    if db_task:
-        for key, value in task_update.model_dump(exclude_unset=True).items():
-            setattr(db_task, key, value)
-        db.commit()
-        db.refresh(db_task)
-    return db_task
+    try:
+        db_task = get_task(db, task_id, user_id)
+        if db_task:
+            update_data = task_update.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(db_task, key, value)
+                logger.info(f"Updated {key} for task ID: {task_id}, user ID: {user_id}")
+            db.commit()
+            db.refresh(db_task)
+            return db_task
+        logger.warning(f"Attempted to update non-existent task ID: {task_id} for user {user_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error updating task {task_id} for user {user_id}: {e}")
+        db.rollback()
+        raise
 
 
 def delete_task(db: Session, task_id: int, user_id: int):
-    db_task = get_task(db, task_id, user_id)
-    if db_task:
-        db.delete(db_task)
-        db.commit()
-        return db_task
-    return None
+    try:
+        db_task = get_task(db, task_id, user_id)
+        if db_task:
+            logger.info(f"Deleting task ID: {task_id} for user {user_id}")
+            db.delete(db_task)
+            db.commit()
+            return db_task
+        logger.warning(f"Attempted to delete non-existent task ID: {task_id} for user {user_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error deleting task {task_id} for user {user_id}: {e}")
+        db.rollback()
+        raise
