@@ -211,4 +211,4 @@ async def read_register():
 
 @app.get('/favicon.ico')
 async def favicon():
-    return FileResponse('frontend/static/favicon.ico')
+    return FileResponse('frontend/static/images/favicon.ico')
