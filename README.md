@@ -80,7 +80,7 @@
 
 ## 📄 Примеры
 
-![Login](example/admin.jpg)
+![Login](example/login.jpg)
 ![Dashboard](example/dashboard.jpg)
 ![Profile](example/profile.jpg)
 ![Admin](example/admin.jpg)
