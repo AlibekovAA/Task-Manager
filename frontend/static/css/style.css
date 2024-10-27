@@ -6,7 +6,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(10deg, rgba(100, 181, 246, 0.8), rgba(225, 245, 254, 0.8)),
+    background: linear-gradient(45deg, rgba(147, 0, 255, 0.9), rgba(89, 0, 255, 0.9)),
                 url('/static/images/auth-bg.jpg');
     background-size: cover;
     background-position: center;
@@ -14,16 +14,21 @@ body {
 }
 
 .auth-container {
-    background: white;
+    background: linear-gradient(135deg, rgba(147, 0, 255, 0.4), rgba(89, 0, 255, 0.4));
     padding: 2rem;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     width: 100%;
     max-width: 400px;
 }
 
 .auth-form {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
@@ -32,19 +37,21 @@ h1 {
 }
 
 h2 {
-    color: #424242;
+    color: white;
     margin-bottom: 2rem;
 }
 
 .form-group {
     margin-bottom: 1.5rem;
     text-align: left;
+    width: 100%;
+    max-width: 500px;
 }
 
 label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #616161;
+    color: white;
 }
 
 input {
@@ -54,6 +61,7 @@ input {
     border-radius: 4px;
     font-size: 1rem;
     transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
 input:focus {
@@ -71,6 +79,7 @@ button {
     cursor: pointer;
     width: 100%;
     transition: background-color 0.3s;
+    max-width: 320px;
 }
 
 button:hover {
@@ -89,7 +98,7 @@ button:hover {
 }
 
 .auth-links a {
-    color: #2196;
+    color: white;
     text-decoration: none;
     font-size: 1rem;
     font-weight: 600;
@@ -100,8 +109,29 @@ button:hover {
 }
 
 .auth-links a:hover {
-    background-color: rgba(33, 150, 243, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
     text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.institute-logo {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 150px;
+    height: auto;
+    z-index: 10;
+}
+
+.institute-logo img {
+    width: 100%;
+    height: auto;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.institute-logo img:hover {
+    opacity: 1;
 }

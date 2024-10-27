@@ -15,9 +15,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str):
+    logger.info("Attempting to verify password")
     try:
         result = pwd_context.verify(plain_password, hashed_password)
-        logger.debug(f"Password verification result: {result}")
+        logger.info(f"Password verification result: {'success' if result else 'failure'}")
         return result
     except Exception as e:
         logger.error(f"Error verifying password: {e}")
@@ -25,9 +26,10 @@ def verify_password(plain_password: str, hashed_password: str):
 
 
 def get_password_hash(password: str):
+    logger.info("Attempting to hash password")
     try:
         hashed = pwd_context.hash(password)
-        logger.debug("Password hashed successfully")
+        logger.info("Password hashed successfully")
         return hashed
     except Exception as e:
         logger.error(f"Error hashing password: {e}")
@@ -35,6 +37,7 @@ def get_password_hash(password: str):
 
 
 def authenticate_user(db: Session, email: str, password: str):
+    logger.info(f"Attempting to authenticate user: {email}")
     try:
         user = crud.get_user_by_email(db, email)
         if not user:

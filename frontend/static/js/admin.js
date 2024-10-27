@@ -83,12 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="user-actions">
                     <select class="role-select" onchange="changeUserRole(${user.id}, this.value)"
                             ${isCurrentUser || isAdmin ? 'disabled' : ''}>
-                        ${isAdmin ? `
-                            <option value="admin" selected>Администратор</option>
-                        ` : `
-                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
-                            <option value="pm" ${user.role === 'pm' ? 'selected' : ''}>Проджект-менеджер</option>
-                        `}
+                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                        <option value="pm" ${user.role === 'pm' ? 'selected' : ''}>Проджект-менеджер</option>
+                        ${isAdmin ? `<option value="admin" selected>Администратор</option>` : ''}
                     </select>
                     <button class="btn-${user.is_active ? 'danger' : 'success'}"
                             onclick="toggleUserBlock(${user.id}, ${user.is_active})"
@@ -102,23 +99,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showNotification(message, type = 'error') {
-        const content = notification.querySelector('.notification-content');
-        notificationMessage.textContent = message;
+        const notificationElement = document.createElement('div');
+        notificationElement.className = `notification ${type}`;
 
-        content.classList.remove('success', 'error');
-        content.classList.add(type);
-        notification.classList.add('show');
+        const icon = type === 'success' ? '✅' : '❌';
+
+        notificationElement.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">${icon}</span>
+                <span class="notification-message">${message}</span>
+            </div>
+            <button class="notification-close">&times;</button>
+        `;
+
+        document.body.appendChild(notificationElement);
 
         setTimeout(() => {
-            notification.classList.remove('show');
+            notificationElement.classList.add('show');
+        }, 10);
+
+        const closeBtn = notificationElement.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            hideNotification(notificationElement);
+        });
+
+        setTimeout(() => {
+            hideNotification(notificationElement);
         }, 5000);
     }
 
-    function hideNotification() {
-        notification.classList.remove('show');
+    function hideNotification(notificationElement) {
+        notificationElement.classList.remove('show');
+        setTimeout(() => {
+            notificationElement.remove();
+        }, 300);
     }
 
-    notificationClose.addEventListener('click', hideNotification);
+    notificationClose.addEventListener('click', () => {
+        hideNotification(notification);
+    });
 
     window.toggleUserBlock = async function(userId, currentStatus) {
         try {

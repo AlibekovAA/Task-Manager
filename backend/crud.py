@@ -10,10 +10,11 @@ logger = setup_logger(__name__)
 
 
 def get_user(db: Session, user_id: int):
+    logger.info(f"Attempting to retrieve user with id: {user_id}")
     try:
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if user:
-            logger.info(f"Retrieved user with id: {user_id}")
+            logger.info(f"Successfully retrieved user with id: {user_id}")
         else:
             logger.warning(f"User not found with id: {user_id}")
         return user
@@ -23,10 +24,11 @@ def get_user(db: Session, user_id: int):
 
 
 def get_user_by_email(db: Session, email: str):
+    logger.info(f"Attempting to retrieve user with email: {email}")
     try:
         user = db.query(models.User).filter(models.User.email == email).first()
         if user:
-            logger.info(f"Retrieved user with email: {email}")
+            logger.info(f"Successfully retrieved user with email: {email}")
         else:
             logger.warning(f"User not found with email: {email}")
         return user
@@ -36,10 +38,14 @@ def get_user_by_email(db: Session, email: str):
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.User).offset(skip).limit(limit).all()
+    logger.info(f"Retrieving users with skip: {skip}, limit: {limit}")
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    logger.info(f"Retrieved {len(users)} users")
+    return users
 
 
 def create_user(db: Session, user: schemas.UserCreate):
+    logger.info(f"Attempting to create new user with email: {user.email}")
     try:
         hashed_password = get_password_hash(user.password)
         db_user = models.User(
@@ -49,7 +55,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        logger.info(f"Created new user with email: {user.email}")
+        logger.info(f"Successfully created new user with email: {user.email}")
         return db_user
     except Exception as e:
         logger.error(f"Error creating user {user.email}: {e}")
@@ -58,12 +64,14 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def delete_user(db: Session, user_id: int):
+    logger.info(f"Attempting to delete user with ID: {user_id}")
     try:
         db_user = db.query(models.User).filter(models.User.id == user_id).first()
         if db_user:
             logger.info(f"Deleting user with ID: {user_id}, email: {db_user.email}")
             db.delete(db_user)
             db.commit()
+            logger.info(f"Successfully deleted user with ID: {user_id}")
             return db_user
         logger.warning(f"Attempted to delete non-existent user with ID: {user_id}")
         return None

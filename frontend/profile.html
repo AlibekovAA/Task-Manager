@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль пользователя</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="static/css/dashboard.css">
 </head>
 <body>
+    <div class="institute-logo">
+        <img src="/static/images/institute_ivti.png" alt="ИВТИ">
+    </div>
     <div class="dashboard">
         <nav class="sidebar">
             <div class="logo">
@@ -25,36 +29,80 @@
             </header>
 
             <div class="profile-container">
-                <div class="profile-info">
-                    <h3>Информация</h3>
-                    <p>Email: <span id="userEmail"></span></p>
-                    <p>Дата регистрации: <span id="userCreatedAt"></span></p>
-                </div>
+                <div class="profile-card">
+                    <div class="profile-section">
+                        <h3>Информация о пользователе</h3>
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" id="userEmail"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Дата регистрации:</span>
+                                <span class="info-value" id="userCreatedAt"></span>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="password-change">
-                    <h3>Изменить пароль</h3>
-                    <form id="passwordForm">
-                        <div class="form-group">
-                            <label for="currentPassword">Текущий пароль</label>
-                            <input type="password" id="currentPassword" name="currentPassword" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newPassword">Новый пароль</label>
-                            <input type="password" id="newPassword" name="newPassword" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirmPassword">Подтвердите новый пароль</label>
-                            <input type="password" id="confirmPassword" name="confirmPassword" required>
-                        </div>
-                        <div class="error-message" id="passwordError"></div>
-                        <div class="success-message" id="passwordSuccess"></div>
-                        <button type="submit" class="btn-primary">Сменить пароль</button>
-                    </form>
+                    <div class="profile-section">
+                        <h3>Изменить пароль</h3>
+                        <form id="passwordForm" class="password-form">
+                            <div class="form-group">
+                                <label for="currentPassword">Текущий пароль</label>
+                                <input type="password" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">Новый пароль</label>
+                                <input
+                                    type="password"
+                                    id="newPassword"
+                                    name="newPassword"
+                                    required
+                                    minlength="6"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Подтвердите новый пароль</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                            <div class="error-message" id="passwordError"></div>
+                            <div class="success-message" id="passwordSuccess"></div>
+                            <button type="submit" class="btn-primary">Сменить пароль</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script src="static/js/profile.js"></script>
+    <script src="static/js/common.js"></script>
 </body>
+<div class="info-button" id="infoButton">i</div>
+
+<div class="author-modal" id="authorModal">
+    <div class="author-modal-content">
+        <span class="close-modal" id="closeModal">&times;</span>
+        <h2>Об авторе</h2>
+        <div class="author-info">
+            <img src="/static/images/author-photo.jpg" alt="Фото автора" class="author-photo">
+            <h3>Алибеков Аслан Алибегович</h3>
+            <p class="author-title">Разработчик этого замечательного приложения</p>
+            <p class="author-description">
+                В настоящее время работаю в Лаборатории Касперского и являюсь студентом первого курса магистратуры факультета Прикладной математики и информатики МЭИ
+            </p>
+        </div>
+        <div class="social-links">
+            <a href="https://github.com/AlibekovAA" target="_blank" title="GitHub" class="social-link">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://t.me/alibekov_05" target="_blank" title="Telegram" class="social-link">
+                <i class="fab fa-telegram"></i>
+            </a>
+            <a href="mailto:aslan.alibekov.2017@mail.ru" title="Email" class="social-link">
+                <i class="fas fa-envelope"></i>
+            </a>
+        </div>
+    </div>
+</div>
 </html>

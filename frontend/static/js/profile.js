@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (newPassword.length < 6) {
-            passwordError.textContent = 'Новый пароль должен содержать минимум 6 символов';
+            passwordError.textContent = 'Пароль должен содержать не менее 6 символов';
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';
             return;
@@ -77,39 +77,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            const response = await fetchWithToken('/users/me/password', {
-                method: 'PUT',
+            const checkResponse = await fetchWithToken('/users/me/check-password', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    current_password: currentPassword,
-                    new_password: newPassword
+                    password: currentPassword
                 })
             });
 
-            if (response.ok) {
-                passwordSuccess.textContent = 'Пароль успешно изменен';
-                passwordForm.reset();
-
-                const formGroups = passwordForm.querySelectorAll('.form-group');
-                formGroups.forEach(group => {
-                    group.classList.add('success');
-                    setTimeout(() => group.classList.remove('success'), 2000);
-                });
-            } else {
-                const data = await response.json();
-                if (response.status === 401) {
-                    passwordError.textContent = 'Неверный текущий пароль';
-                } else {
-                    passwordError.textContent = data.detail || 'Ошибка при смене пароля';
+            if (checkResponse.ok) {
+                if (currentPassword === newPassword) {
+                    passwordError.textContent = 'Новый пароль совпадает с текущим';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Сменить пароль';
+                    return;
                 }
 
-                const formGroups = passwordForm.querySelectorAll('.form-group');
-                formGroups.forEach(group => {
-                    group.classList.add('error');
-                    setTimeout(() => group.classList.remove('error'), 2000);
+                const response = await fetchWithToken('/users/me/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
                 });
+
+                if (response.ok) {
+                    passwordSuccess.textContent = 'Пароль успешно изменен';
+                    passwordForm.reset();
+
+                    const formGroups = passwordForm.querySelectorAll('.form-group');
+                    formGroups.forEach(group => {
+                        group.classList.add('success');
+                        setTimeout(() => group.classList.remove('success'), 2000);
+                    });
+                } else {
+                    const data = await response.json();
+                    passwordError.textContent = data.detail || 'Ошибка при смене пароля';
+
+                    const formGroups = passwordForm.querySelectorAll('.form-group');
+                    formGroups.forEach(group => {
+                        group.classList.add('error');
+                        setTimeout(() => group.classList.remove('error'), 2000);
+                    });
+                }
+            } else {
+                passwordError.textContent = 'Неверный текущий пароль';
             }
         } catch (error) {
             console.error('Error changing password:', error);

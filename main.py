@@ -30,6 +30,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 db_dependency = Annotated[Session, Depends(get_db)]
 token_dependency = Annotated[str, Depends(oauth2_scheme)]
+refresh_token_body = Body(...)
+password_body = Body(...)
 
 
 def get_current_user(db: Annotated[Session, Depends(get_db)], token: token_dependency):
@@ -101,9 +103,6 @@ def login_for_access_token(
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
-
-
-refresh_token_body = Body(...)
 
 
 @app.post("/token/refresh", response_model=schemas.Token)
@@ -208,8 +207,6 @@ async def read_root():
 async def read_dashboard():
     return FileResponse("frontend/dashboard.html")
 
-password_body = Body(...)
-
 
 @app.put("/users/me/password")
 async def change_password(
@@ -223,7 +220,7 @@ async def change_password(
     if not current_password or not new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Необходимо указать текущий и новый пароль"
+            detail="Необходимо указать текущий и новый  пароль"
         )
 
     if not auth.verify_password(current_password, current_user.password_hash):
@@ -234,7 +231,7 @@ async def change_password(
 
     user_update = schemas.UserUpdate(password=new_password)
     crud.update_user(db, current_user.id, user_update)
-    return {"message": "ароль успешно изменен"}
+    return {"message": "Пароль успешно изменен"}
 
 
 @app.get("/profile.html")
@@ -344,3 +341,26 @@ async def change_user_role(
         )
 
     return crud.update_user_role(db, user_id, role_update.role)
+
+
+@app.post("/users/me/check-password")
+async def check_password(
+    current_user: current_user_dependency,
+    db: db_dependency,
+    body: dict = password_body
+):
+    password = body.get("password")
+
+    if not password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Необходимо указать пароль"
+        )
+
+    if not auth.verify_password(password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный пароль"
+        )
+
+    return {"message": "Пароль верный"}

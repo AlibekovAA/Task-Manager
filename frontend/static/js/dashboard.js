@@ -501,4 +501,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }, 1000);
 
+    const taskDueDate = document.getElementById('taskDueDate');
+    if (taskDueDate) {
+
+    function setDefaultDueDate() {
+        const now = new Date();
+        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+        taskDueDate.value = tomorrow.toISOString().slice(0, 16);
+    }
+
+    addTaskBtn.addEventListener('click', () => {
+        setDefaultDueDate();
+        taskModal.classList.add('active');
+    });
+    }
+
 });
