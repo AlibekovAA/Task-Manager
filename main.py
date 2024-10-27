@@ -315,3 +315,32 @@ async def verify_token(current_user: current_user_dependency):
 @app.get("/admin.html")
 async def read_admin():
     return FileResponse("frontend/admin.html")
+
+
+@app.put("/admin/users/{user_id}/role", response_model=schemas.UserResponse)
+async def change_user_role(
+    user_id: int,
+    role_update: schemas.UserRoleUpdate,
+    current_user: admin_user_dependency,
+    db: db_admin_dependency
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Только администраторы могут изменять роли пользователей"
+        )
+
+    user = crud.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден"
+        )
+
+    if user.role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Невозможно изменить роль администратора"
+        )
+
+    return crud.update_user_role(db, user_id, role_update.role)

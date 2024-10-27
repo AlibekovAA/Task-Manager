@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель управления</title>
     <link rel="stylesheet" href="static/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="dashboard">
@@ -38,15 +39,18 @@
             <form id="taskForm">
                 <div class="form-group">
                     <label for="taskTitle">Название</label>
-                    <input type="text" id="taskTitle" name="title" required>
+                    <input type="text" id="taskTitle" name="title" required minlength="1" maxlength="100">
+                    <span class="error-message">Пожалуйста, введите название задачи (от 1 до 100 символов)</span>
                 </div>
                 <div class="form-group">
                     <label for="taskDescription">Описание</label>
-                    <textarea id="taskDescription" name="description"></textarea>
+                    <textarea id="taskDescription" name="description" maxlength="500"></textarea>
+                    <span class="error-message">Описание не может быть длиннее 500 символов</span>
                 </div>
                 <div class="form-group">
                     <label for="taskDueDate">Дата выполнения</label>
                     <input type="datetime-local" id="taskDueDate" name="due_date">
+                    <span class="error-message">Дата выполнения не может быть в прошлом</span>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-secondary" id="cancelTaskBtn">Отмена</button>

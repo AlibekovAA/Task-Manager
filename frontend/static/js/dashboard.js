@@ -93,9 +93,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function getFuseClass(progress) {
-        if (progress >= 80) return 'urgent';
-        if (progress >= 50) return 'medium';
+        if (progress <= 30) return 'urgent';
+        if (progress <= 70) return 'medium';
         return 'safe';
+    }
+
+    function formatTimeLeft(timeLeft) {
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (days > 0) {
+            return `${days} дн. ${hours} ч.`;
+        } else if (hours > 0) {
+            return `${hours} ч. ${minutes} мин.`;
+        } else {
+            return `${minutes} мин.`;
+        }
+    }
+
+    function getFuseLabel(progress, timeLeft) {
+        if (progress <= 30) {
+            return `⚠️ Срочно! (${formatTimeLeft(timeLeft)})`;
+        }
+        if (progress <= 70) {
+            return `⚡ Внимание (${formatTimeLeft(timeLeft)})`;
+        }
+        return `✓ В работе (${formatTimeLeft(timeLeft)})`;
     }
 
     function renderTasks(tasks) {
@@ -121,9 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const progress = calculateFuseProgress(task.due_date, task.created_at);
                     const fuseClass = getFuseClass(progress);
+                    const fuseLabel = getFuseLabel(progress);
 
                     fuseHtml = `
                         <div class="fuse-container">
+                            <div class="fuse-label ${fuseClass}">${fuseLabel} (${Math.round(progress)}%)</div>
                             <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
                         </div>
                     `;
@@ -169,6 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (type === 'urgent') {
             const audio = new Audio('/static/sounds/notification.mp3');
+            audio.volume = 0.3;
             audio.play().catch(e => console.log('Автовоспроизведение звука заблокировано браузером'));
         }
 
@@ -393,5 +420,85 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadUserProfile();
         await loadTasks();
     }, 30000);
+
+    function updateFuse(taskElement, dueDate) {
+        const fuseContainer = taskElement.querySelector('.fuse-container');
+        const fuse = taskElement.querySelector('.fuse');
+        const fuseLabel = taskElement.querySelector('.fuse-label');
+
+        if (!dueDate) {
+            fuseContainer.style.display = 'none';
+            return;
+        }
+
+        const now = new Date();
+        const due = new Date(dueDate);
+        const taskCreatedAt = new Date(taskElement.dataset.createdAt);
+
+        const totalDuration = due - taskCreatedAt;
+        const timeLeft = due - now;
+        let percentLeft = (timeLeft / totalDuration) * 100;
+        percentLeft = Math.max(0, Math.min(100, percentLeft));
+
+        const fuseClass = getFuseClass(percentLeft);
+        const fuseLabelText = getFuseLabel(percentLeft, timeLeft);
+
+        fuse.className = `fuse ${fuseClass}`;
+        fuseLabel.className = `fuse-label ${fuseClass}`;
+
+        if (percentLeft === 0) {
+            taskElement.classList.add('expired');
+            fuseLabel.textContent = '❌ Просрочено!';
+        } else {
+            taskElement.classList.remove('expired');
+            fuseLabel.textContent = fuseLabelText;
+        }
+
+        fuse.style.width = `${percentLeft}%`;
+        fuseContainer.style.display = 'block';
+    }
+
+    function renderTask(task) {
+        const taskElement = document.createElement('div');
+        taskElement.className = `task-item${task.completed ? ' completed' : ''}`;
+        taskElement.dataset.createdAt = task.created_at;
+
+        taskElement.innerHTML = `
+            <div class="task-info">
+                <h3>${task.title}</h3>
+                <p>${task.description || ''}</p>
+                ${task.due_date ? `<p class="due-date">Срок: ${new Date(task.due_date).toLocaleString('ru-RU')}</p>` : ''}
+                <div class="fuse-container">
+                    <div class="fuse"></div>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="btn-success ${task.completed ? 'completed' : ''} ${task.due_date && !task.completed ? 'disabled' : ''}"
+                        onclick="toggleTaskComplete(${task.id}, ${task.completed})"
+                        ${task.due_date && !task.completed ? 'disabled' : ''}>
+                    ${task.completed ? 'Отменить выполнение' : 'Выполнить'}
+                </button>
+                <button class="btn-secondary" onclick="editTask(${task.id})">Изменить</button>
+                <button class="btn-danger" onclick="showDeleteConfirmModal(${task.id})">Удалить</button>
+            </div>
+        `;
+
+        if (task.due_date) {
+            updateFuse(taskElement, task.due_date);
+        }
+
+        return taskElement;
+    }
+
+    // Обновляем все фитили каждую секунду
+    setInterval(() => {
+        document.querySelectorAll('.task-item').forEach(taskElement => {
+            const dueDate = taskElement.querySelector('.due-date');
+            if (dueDate) {
+                const dueDateText = dueDate.textContent.split(': ')[1];
+                updateFuse(taskElement, new Date(dueDateText));
+            }
+        });
+    }, 1000);
 
 });

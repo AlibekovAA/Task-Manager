@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/dashboard.html';
                     return;
                 }
+
+                localStorage.setItem('user_email', userData.email);
             } else {
                 window.location.href = '/';
                 return;
@@ -67,6 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const userElement = document.createElement('div');
             userElement.className = 'user-item';
 
+            const currentUserEmail = localStorage.getItem('user_email');
+            const isCurrentUser = user.email === currentUserEmail;
+            const isAdmin = user.role === 'admin';
+
             userElement.innerHTML = `
                 <div class="user-info">
                     <h3>${user.email}</h3>
@@ -75,9 +81,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Статус: ${user.is_active ? 'Активен' : 'Заблокирован'}</p>
                 </div>
                 <div class="user-actions">
+                    <select class="role-select" onchange="changeUserRole(${user.id}, this.value)"
+                            ${isCurrentUser || isAdmin ? 'disabled' : ''}>
+                        ${isAdmin ? `
+                            <option value="admin" selected>Администратор</option>
+                        ` : `
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                            <option value="pm" ${user.role === 'pm' ? 'selected' : ''}>Проджект-менеджер</option>
+                        `}
+                    </select>
                     <button class="btn-${user.is_active ? 'danger' : 'success'}"
                             onclick="toggleUserBlock(${user.id}, ${user.is_active})"
-                            ${user.role === 'admin' ? 'disabled' : ''}>
+                            ${isCurrentUser || isAdmin ? 'disabled' : ''}>
                         ${user.is_active ? 'Заблокировать' : 'Разблокировать'}
                     </button>
                 </div>
@@ -141,4 +156,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadUsers();
+
+    window.changeUserRole = async function(userId, newRole) {
+        try {
+            const response = await fetch(`/admin/users/${userId}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    role: newRole
+                })
+            });
+
+            if (response.ok) {
+                await loadUsers();
+                showNotification(
+                    `Роль пользователя изменена на ${newRole}`,
+                    'success'
+                );
+            } else {
+                const errorData = await response.json();
+                showNotification(errorData.detail || 'Ошибка при изменении роли пользователя', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating user role:', error);
+            showNotification('Ошибка при изменении роли пользователя');
+        }
+    };
 });

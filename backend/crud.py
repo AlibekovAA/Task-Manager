@@ -171,3 +171,20 @@ def delete_task(db: Session, task_id: int, user_id: int):
         logger.error(f"Error deleting task {task_id} for user {user_id}: {e}")
         db.rollback()
         raise
+
+
+def update_user_role(db: Session, user_id: int, new_role: str):
+    try:
+        db_user = db.query(models.User).filter(models.User.id == user_id).first()
+        if db_user:
+            db_user.role = new_role
+            db.commit()
+            db.refresh(db_user)
+            logger.info(f"Updated role to {new_role} for user ID: {user_id}")
+            return db_user
+        logger.warning(f"Attempted to update role for non-existent user with ID: {user_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error updating role for user {user_id}: {e}")
+        db.rollback()
+        raise

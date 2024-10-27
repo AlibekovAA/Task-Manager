@@ -26,14 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 userEmail.textContent = userData.email;
                 userCreatedAt.textContent = new Date(userData.created_at).toLocaleString('ru-RU');
 
-                if (userData.role === 'admin') {
-                    if (adminMenuItem) {
-                        adminMenuItem.style.display = 'block';
-                    }
-                } else {
-                    if (adminMenuItem) {
-                        adminMenuItem.style.display = 'none';
-                    }
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (adminMenuItem) {
+                    adminMenuItem.style.display = userData.role === 'admin' ? 'block' : 'none';
                 }
             } else if (response.status === 401) {
                 localStorage.removeItem('access_token');
@@ -48,14 +43,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         passwordError.textContent = '';
         passwordSuccess.textContent = '';
 
+        const submitButton = passwordForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner"></span> Обработка...';
+
+        const currentPassword = passwordForm.currentPassword.value;
         const newPassword = passwordForm.newPassword.value;
         const confirmPassword = passwordForm.confirmPassword.value;
 
+        if (!newPassword.trim()) {
+            passwordError.textContent = 'Новый пароль не может быть пустым';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Сменить пароль';
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            passwordError.textContent = 'Новый пароль должен содержать минимум 6 символов';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Сменить пароль';
+            return;
+        }
+
         if (newPassword !== confirmPassword) {
             passwordError.textContent = 'Пароли не совпадают';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Сменить пароль';
             return;
         }
 
@@ -66,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    current_password: passwordForm.currentPassword.value,
+                    current_password: currentPassword,
                     new_password: newPassword
                 })
             });
@@ -74,13 +91,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 passwordSuccess.textContent = 'Пароль успешно изменен';
                 passwordForm.reset();
+
+                const formGroups = passwordForm.querySelectorAll('.form-group');
+                formGroups.forEach(group => {
+                    group.classList.add('success');
+                    setTimeout(() => group.classList.remove('success'), 2000);
+                });
             } else {
                 const data = await response.json();
-                passwordError.textContent = data.detail || 'Ошибка при смене пароля';
+                if (response.status === 401) {
+                    passwordError.textContent = 'Неверный текущий пароль';
+                } else {
+                    passwordError.textContent = data.detail || 'Ошибка при смене пароля';
+                }
+
+                const formGroups = passwordForm.querySelectorAll('.form-group');
+                formGroups.forEach(group => {
+                    group.classList.add('error');
+                    setTimeout(() => group.classList.remove('error'), 2000);
+                });
             }
         } catch (error) {
             console.error('Error changing password:', error);
             passwordError.textContent = 'Ошибка соединения с сервером';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Сменить пароль';
         }
     });
 
@@ -92,3 +128,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setInterval(loadUserProfile, 30000);
 });
+
+async function fetchWithToken(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    return fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+        }
+    });
+}

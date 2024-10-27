@@ -93,3 +93,14 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class UserRoleUpdate(BaseModel):
+    role: str
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        if value not in ['user', 'admin', 'pm']:
+            raise ValueError('Role must be either user, admin or pm')
+        return value
