@@ -136,32 +136,73 @@ body {
 
 .fuse-container {
     width: 100%;
-    height: 12px;
-    margin: 15px 0;
-    background: var(--background-light);
-    border-radius: 20px;
-    overflow: hidden;
+    height: 24px;
+    margin-top: 10px;
     position: relative;
-    box-shadow: inset 0 2px 4px var(--shadow-color);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .fuse {
     height: 100%;
-    border-radius: 20px;
-    transition: all 0.3s ease;
+    transition: width 0.3s ease;
+    border-radius: 12px;
     position: relative;
-    background-size: 30px 30px;
-    background-image: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.15) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255, 255, 255, 0.15) 50%,
-        rgba(255, 255, 255, 0.15) 75%,
-        transparent 75%,
-        transparent
-    );
-    animation: fuse-stripe 1s linear infinite;
+}
+
+.fuse-label {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    z-index: 1;
+    font-size: 0.9em;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.fuse.urgent {
+    background: linear-gradient(90deg, #ff0000, #ff3300);
+}
+
+.fuse.medium {
+    background: linear-gradient(90deg, #ff9900, #ffcc00);
+}
+
+.fuse.safe {
+    background: linear-gradient(90deg, #33cc33, #66ff66);
+}
+
+.fuse::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow:
+        0 0 10px #fff,
+        0 0 20px #ff0,
+        0 0 30px #ff0;
+    animation: spark 0.5s linear infinite;
+}
+
+@keyframes spark {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.task-item.expired .fuse {
+    background: #ff0000 !important;
+}
+
+.task-item.expired .due-date {
+    color: #ff0000 !important;
 }
 
 .notification {
@@ -814,4 +855,52 @@ button:disabled {
 
 .close-modal:hover {
     color: #ddd;
+}
+
+.task-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-info {
+    margin-bottom: 15px;
+}
+
+.task-info h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 1.2em;
+}
+
+.task-info p {
+    margin: 5px 0;
+    color: var(--text-secondary);
+}
+
+.due-date {
+    color: var(--warning-color) !important;
+    font-weight: 500;
+}
+
+.fuse-label.urgent {
+    color: #ff3300;
+}
+
+.fuse-label.medium {
+    color: #ffcc00;
+}
+
+.fuse-label.safe {
+    color: #66ff66;
 }

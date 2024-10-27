@@ -81,15 +81,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function calculateFuseProgress(dueDate, createdAt) {
+    function calculateFuseProgress(dueDate) {
         const now = new Date();
         const due = new Date(dueDate);
-        const created = new Date(createdAt);
+        const totalTime = due.getTime() - now.getTime();
 
-        const totalDuration = due.getTime() - created.getTime();
-        const elapsed = now.getTime() - created.getTime();
+        if (totalTime <= 0) {
+            return 0;
+        }
 
-        return 100 - Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+        const maxTime = 7 * 24 * 60 * 60 * 1000;
+        const progress = Math.min((totalTime / maxTime) * 100, 100);
+
+        return progress;
     }
 
     function getFuseClass(progress) {
@@ -99,6 +103,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function formatTimeLeft(timeLeft) {
+        if (isNaN(timeLeft)) {
+            return 'время не задано';
+        }
+
         const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -113,13 +121,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function getFuseLabel(progress, timeLeft) {
+        if (timeLeft <= 0) {
+            return '⚠️ Просрочено!';
+        }
+
+        const timeLeftStr = formatTimeLeft(timeLeft);
+
         if (progress <= 30) {
-            return `⚠️ Срочно! (${formatTimeLeft(timeLeft)})`;
+            return `⚠️ Срочно!`;
         }
         if (progress <= 70) {
-            return `⚡ Внимание (${formatTimeLeft(timeLeft)})`;
+            return `⚡ Внимание`;
         }
-        return `✓ В работе (${formatTimeLeft(timeLeft)})`;
+        return `✓ В работе`;
     }
 
     function renderTasks(tasks) {
@@ -143,13 +157,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         minute: '2-digit'
                     });
 
-                    const progress = calculateFuseProgress(task.due_date, task.created_at);
+                    const progress = calculateFuseProgress(task.due_date);
                     const fuseClass = getFuseClass(progress);
-                    const fuseLabel = getFuseLabel(progress);
+                    const timeLeft = new Date(task.due_date) - new Date();
+                    const fuseLabel = getFuseLabel(progress, timeLeft);
 
                     fuseHtml = `
                         <div class="fuse-container">
-                            <div class="fuse-label ${fuseClass}">${fuseLabel} (${Math.round(progress)}%)</div>
+                            <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
                             <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
                         </div>
                     `;
@@ -422,60 +437,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 30000);
 
     function updateFuse(taskElement, dueDate) {
-        const fuseContainer = taskElement.querySelector('.fuse-container');
-        const fuse = taskElement.querySelector('.fuse');
-        const fuseLabel = taskElement.querySelector('.fuse-label');
-
-        if (!dueDate) {
-            fuseContainer.style.display = 'none';
-            return;
-        }
+        const fuseElement = taskElement.querySelector('.fuse');
+        if (!fuseElement) return;
 
         const now = new Date();
         const due = new Date(dueDate);
-        const taskCreatedAt = new Date(taskElement.dataset.createdAt);
+        const totalTime = due.getTime() - now.getTime();
 
-        const totalDuration = due - taskCreatedAt;
-        const timeLeft = due - now;
-        let percentLeft = (timeLeft / totalDuration) * 100;
-        percentLeft = Math.max(0, Math.min(100, percentLeft));
-
-        const fuseClass = getFuseClass(percentLeft);
-        const fuseLabelText = getFuseLabel(percentLeft, timeLeft);
-
-        fuse.className = `fuse ${fuseClass}`;
-        fuseLabel.className = `fuse-label ${fuseClass}`;
-
-        if (percentLeft === 0) {
-            taskElement.classList.add('expired');
-            fuseLabel.textContent = '❌ Просрочено!';
-        } else {
-            taskElement.classList.remove('expired');
-            fuseLabel.textContent = fuseLabelText;
+        if (totalTime <= 0) {
+            fuseElement.style.width = '100%';
+            fuseElement.style.background = '#ff0000';
+            return;
         }
 
-        fuse.style.width = `${percentLeft}%`;
-        fuseContainer.style.display = 'block';
+        const timeLeft = totalTime;
+        const oneDay = 24 * 60 * 60 * 1000;
+        const percentLeft = (timeLeft / oneDay) * 100;
+
+        const width = Math.min(Math.max(100 - percentLeft, 0), 100);
+        fuseElement.style.width = `${width}%`;
+
+        if (timeLeft < oneDay * 0.25) {
+            fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff0000)';
+        } else if (timeLeft < oneDay * 0.5) {
+            fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff5e00)';
+        } else {
+            fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff5e00, #ffcc00)';
+        }
     }
 
     function renderTask(task) {
         const taskElement = document.createElement('div');
-        taskElement.className = `task-item${task.completed ? ' completed' : ''}`;
+        const isExpired = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
+        taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
         taskElement.dataset.createdAt = task.created_at;
+
+        let dueDate = '';
+        let fuseHtml = '';
+
+        if (task.due_date && !task.completed) {
+            try {
+                const date = new Date(task.due_date);
+                dueDate = date.toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const progress = calculateFuseProgress(task.due_date);
+                const fuseClass = getFuseClass(progress);
+                const timeLeft = new Date(task.due_date) - new Date();
+                const fuseLabel = getFuseLabel(progress, timeLeft);
+
+                fuseHtml = `
+                    <div class="fuse-container">
+                        <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
+                        <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error formatting date:', error);
+            }
+        }
 
         taskElement.innerHTML = `
             <div class="task-info">
                 <h3>${task.title}</h3>
                 <p>${task.description || ''}</p>
-                ${task.due_date ? `<p class="due-date">Срок: ${new Date(task.due_date).toLocaleString('ru-RU')}</p>` : ''}
-                <div class="fuse-container">
-                    <div class="fuse"></div>
-                </div>
+                ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
+                ${fuseHtml}
             </div>
             <div class="task-actions">
-                <button class="btn-success ${task.completed ? 'completed' : ''} ${task.due_date && !task.completed ? 'disabled' : ''}"
+                <button class="btn-success ${task.completed ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
                         onclick="toggleTaskComplete(${task.id}, ${task.completed})"
-                        ${task.due_date && !task.completed ? 'disabled' : ''}>
+                        ${isExpired ? 'disabled' : ''}>
                     ${task.completed ? 'Отменить выполнение' : 'Выполнить'}
                 </button>
                 <button class="btn-secondary" onclick="editTask(${task.id})">Изменить</button>
@@ -483,14 +520,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
 
-        if (task.due_date) {
-            updateFuse(taskElement, task.due_date);
-        }
-
         return taskElement;
     }
 
-    // Обновляем все фитили каждую секунду
     setInterval(() => {
         document.querySelectorAll('.task-item').forEach(taskElement => {
             const dueDate = taskElement.querySelector('.due-date');
