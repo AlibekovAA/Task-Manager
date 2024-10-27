@@ -6,7 +6,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.23-red.svg)
 ![JWT](https://img.shields.io/badge/JWT-auth-orange.svg)
-
+![SQLite](https://img.shields.io/badge/SQLite-3.43.0-purple.svg)
 
 ## 📋 Содержание
 
@@ -16,6 +16,7 @@
 - [База данных](#база-данных)
 - [Разработка](#разработка)
 - [Автор](#автор)
+- [Примеры](#примеры)
 
 ## ✨ Особенности
 
@@ -76,3 +77,11 @@
 
 ---
 ⭐️ Star на GitHub — это помогает!
+
+## 📄 Примеры
+
+![Login](example/admin.jpg)
+![Dashboard](example/dashboard.jpg)
+![Profile](example/profile.jpg)
+![Admin](example/admin.jpg)
+![info](example/info.jpg)
