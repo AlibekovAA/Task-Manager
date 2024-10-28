@@ -893,14 +893,13 @@ button:disabled {
     font-weight: 500;
 }
 
-.fuse-label.urgent {
-    color: #ff3300;
+.fuse-label {
+    color: rgb(255, 255, 255) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.fuse-label.medium {
-    color: #ffcc00;
-}
-
+.fuse-label.urgent,
+.fuse-label.medium,
 .fuse-label.safe {
-    color: #66ff66;
+    color: rgb(255, 255, 255) !important;
 }

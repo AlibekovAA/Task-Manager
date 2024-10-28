@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return 0;
         }
 
-        const maxTime = 7 * 24 * 60 * 60 * 1000;
+        const maxTime = totalTime;
         const progress = Math.min((totalTime / maxTime) * 100, 100);
 
         return progress;
@@ -128,12 +128,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const timeLeftStr = formatTimeLeft(timeLeft);
 
         if (progress <= 30) {
-            return `⚠️ Срочно!`;
+            return `⚠️ Срочно! (${timeLeftStr})`;
         }
         if (progress <= 70) {
-            return `⚡ Внимание`;
+            return `⚡ Внимание  (${timeLeftStr})`;
         }
-        return `✓ В работе`;
+        return `✓ В работе  (${timeLeftStr})`;
     }
 
     function renderTasks(tasks) {
