@@ -153,7 +153,7 @@ def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
 
 @app.post("/tasks/", response_model=schemas.TaskResponse)
 def create_task(task: schemas.TaskCreate, db: db_dependency, current_user: current_user_dependency):
-    return crud.create_task(db=db, task=task, user_id=current_user.id)
+    return crud.create_task(db=db, task=task, user_id=current_user.id, created_by_id=current_user.id)
 
 
 @app.get("/tasks/", response_model=List[schemas.TaskResponse])
