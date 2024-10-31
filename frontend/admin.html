@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="static/css/dashboard.css">
 </head>
 <body>
-    <div class="institute-logo">
-        <img src="/static/images/institute_ivti.png" alt="ИВТИ">
-    </div>
+    <header class="institute-logo">
+        <img src="/static/images/institute_ivti.png" alt="Логотип ИВТИ" />
+    </header>
+
     <div class="dashboard">
         <nav class="sidebar">
-            <div class="logo">
-            </div>
             <ul class="nav-links">
                 <li><a href="/dashboard.html">Задачи</a></li>
                 <li><a href="/profile.html">Профиль</a></li>
@@ -28,10 +27,9 @@
                 <h2>Управление пользователями</h2>
             </header>
 
-            <div class="users-container">
-                <div class="users-list" id="usersList">
-                </div>
-            </div>
+            <section class="users-container">
+                <div class="users-list" id="usersList"></div>
+            </section>
         </main>
     </div>
 
@@ -42,34 +40,35 @@
         </div>
     </div>
 
+    <div class="info-button" id="infoButton">i</div>
+
+    <div class="author-modal" id="authorModal">
+        <div class="author-modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2>Об авторе</h2>
+            <div class="author-info">
+                <img src="/static/images/author-photo.jpg" alt="Фото автора Аслана Алибекова" class="author-photo" />
+                <h3>Алибеков Аслан Алибегович</h3>
+                <p class="author-title">Разработчик этого замечательного приложения</p>
+                <p class="author-description">
+                    В настоящее время работаю в Лаборатории Касперского и являюсь студентом первого курса магистратуры факультета Прикладной математики и информатики МЭИ.
+                </p>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/AlibekovAA" target="_blank" title="GitHub" class="social-link">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://t.me/alibekov_05" target="_blank" title="Telegram" class="social-link">
+                    <i class="fab fa-telegram"></i>
+                </a>
+                <a href="mailto:aslan.alibekov.2017@mail.ru" title="Email" class="social-link">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script src="static/js/admin.js"></script>
     <script src="static/js/common.js"></script>
 </body>
-<div class="info-button" id="infoButton">i</div>
-
-<div class="author-modal" id="authorModal">
-    <div class="author-modal-content">
-        <span class="close-modal" id="closeModal">&times;</span>
-        <h2>Об авторе</h2>
-        <div class="author-info">
-            <img src="/static/images/author-photo.jpg" alt="Фото автора" class="author-photo">
-            <h3>Алибеков Аслан Алибегович</h3>
-            <p class="author-title">Разработчик этого замечательного приложения</p>
-            <p class="author-description">
-                В настоящее время работаю в Лаборатории Касперского и являюсь студентом первого курса магистратуры факультета Прикладной математики и информатики МЭИ
-            </p>
-        </div>
-        <div class="social-links">
-            <a href="https://github.com/AlibekovAA" target="_blank" title="GitHub" class="social-link">
-                <i class="fab fa-github"></i>
-            </a>
-            <a href="https://t.me/alibekov_05" target="_blank" title="Telegram" class="social-link">
-                <i class="fab fa-telegram"></i>
-            </a>
-            <a href="mailto:aslan.alibekov.2017@mail.ru" title="Email" class="social-link">
-                <i class="fas fa-envelope"></i>
-            </a>
-        </div>
-    </div>
-</div>
 </html>

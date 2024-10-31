@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="static/css/dashboard.css">
 </head>
 <body>
-    <div class="institute-logo">
-        <img src="/static/images/institute_ivti.png" alt="ИВТИ">
-    </div>
+    <header class="institute-logo">
+        <img src="/static/images/institute_ivti.png" alt="Логотип ИВТИ">
+    </header>
+
     <div class="dashboard">
         <nav class="sidebar">
-            <div class="logo">
-            </div>
             <ul class="nav-links">
                 <li><a href="/dashboard.html">Задачи</a></li>
                 <li class="active"><a href="/profile.html">Профиль</a></li>
@@ -30,7 +29,7 @@
 
             <div class="profile-container">
                 <div class="profile-card">
-                    <div class="profile-section">
+                    <section class="profile-section">
                         <h3>Информация о пользователе</h3>
                         <div class="profile-info">
                             <div class="info-item">
@@ -42,34 +41,28 @@
                                 <span class="info-value" id="userCreatedAt"></span>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="profile-section">
+                    <section class="profile-section">
                         <h3>Изменить пароль</h3>
                         <form id="passwordForm" class="password-form">
                             <div class="form-group">
                                 <label for="currentPassword">Текущий пароль</label>
-                                <input type="password" id="currentPassword" name="currentPassword" required>
+                                <input type="password" id="currentPassword" name="currentPassword" required autocomplete="current-password">
                             </div>
                             <div class="form-group">
                                 <label for="newPassword">Новый пароль</label>
-                                <input
-                                    type="password"
-                                    id="newPassword"
-                                    name="newPassword"
-                                    required
-                                    minlength="6"
-                                >
+                                <input type="password" id="newPassword" name="newPassword" required minlength="6" autocomplete="new-password">
                             </div>
                             <div class="form-group">
                                 <label for="confirmPassword">Подтвердите новый пароль</label>
-                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
                             </div>
                             <div class="error-message" id="passwordError"></div>
                             <div class="success-message" id="passwordSuccess"></div>
                             <button type="submit" class="btn-primary">Сменить пароль</button>
                         </form>
-                    </div>
+                    </section>
                 </div>
             </div>
         </main>
@@ -77,32 +70,33 @@
 
     <script src="static/js/profile.js"></script>
     <script src="static/js/common.js"></script>
-</body>
-<div class="info-button" id="infoButton">i</div>
 
-<div class="author-modal" id="authorModal">
-    <div class="author-modal-content">
-        <span class="close-modal" id="closeModal">&times;</span>
-        <h2>Об авторе</h2>
-        <div class="author-info">
-            <img src="/static/images/author-photo.jpg" alt="Фото автора" class="author-photo">
-            <h3>Алибеков Аслан Алибегович</h3>
-            <p class="author-title">Разработчик этого замечательного приложения</p>
-            <p class="author-description">
-                В настоящее время работаю в Лаборатории Касперского и являюсь студентом первого курса магистратуры факультета Прикладной математики и информатики МЭИ
-            </p>
-        </div>
-        <div class="social-links">
-            <a href="https://github.com/AlibekovAA" target="_blank" title="GitHub" class="social-link">
-                <i class="fab fa-github"></i>
-            </a>
-            <a href="https://t.me/alibekov_05" target="_blank" title="Telegram" class="social-link">
-                <i class="fab fa-telegram"></i>
-            </a>
-            <a href="mailto:aslan.alibekov.2017@mail.ru" title="Email" class="social-link">
-                <i class="fas fa-envelope"></i>
-            </a>
+    <div class="info-button" id="infoButton">i</div>
+
+    <div class="author-modal" id="authorModal">
+        <div class="author-modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2>Об авторе</h2>
+            <div class="author-info">
+                <img src="/static/images/author-photo.jpg" alt="Фото автора Аслана Алибекова" class="author-photo">
+                <h3>Алибеков Аслан Алибегович</h3>
+                <p class="author-title">Разработчик этого замечательного приложения</p>
+                <p class="author-description">
+                    В настоящее время работаю в Лаборатории Касперского и являюсь студентом первого курса магистратуры факультета Прикладной математики и информатики МЭИ.
+                </p>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/AlibekovAA" target="_blank" title="GitHub" class="social-link">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://t.me/alibekov_05" target="_blank" title="Telegram" class="social-link">
+                    <i class="fab fa-telegram"></i>
+                </a>
+                <a href="mailto:aslan.alibekov.2017@mail.ru" title="Email" class="social-link">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
         </div>
     </div>
-</div>
+</body>
 </html>

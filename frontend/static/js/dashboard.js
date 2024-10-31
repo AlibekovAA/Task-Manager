@@ -42,15 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 const userData = await response.json();
-                if (userData.role === 'admin') {
-                    if (adminMenuItem) {
-                        adminMenuItem.style.display = 'block';
-                    }
-                } else {
-                    if (adminMenuItem) {
-                        adminMenuItem.style.display = 'none';
-                    }
-                }
+                adminMenuItem.style.display = userData.role === 'admin' ? 'block' : 'none';
             } else if (response.status === 401) {
                 localStorage.removeItem('access_token');
                 window.location.href = '/';
@@ -81,24 +73,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function calculateFuseProgress(dueDate) {
+    function calculateFuseProgress(DueDate, StartDate) {
         const now = new Date();
-        const due = new Date(dueDate);
-        const totalTime = due.getTime() - now.getTime();
+        const startDateObj = new Date(StartDate);
+        const dueDateObj = new Date(DueDate);
 
-        if (totalTime <= 0) {
-            return 0;
-        }
-
-        const maxTime = totalTime;
-        const progress = Math.min((totalTime / maxTime) * 100, 100);
-
-        return progress;
+        const differenceInMilliseconds = dueDateObj - startDateObj;
+        const differenceInMinutes = Math.floor(differenceInMilliseconds / 60000);
+        const initialTotalTime = Math.floor((dueDateObj - now) / 60000);
+        const progress = (initialTotalTime / differenceInMinutes) * 100;
+        return Math.min(progress, 100);
     }
 
     function getFuseClass(progress) {
         if (progress <= 30) return 'urgent';
-        if (progress <= 70) return 'medium';
+        if (progress <= 60) return 'medium';
         return 'safe';
     }
 
@@ -116,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (hours > 0) {
             return `${hours} ч. ${minutes} мин.`;
         } else {
-            return `${minutes} мин.`;
+            return `${minutes + 1} мин.`;
         }
     }
 
@@ -157,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         minute: '2-digit'
                     });
 
-                    const progress = calculateFuseProgress(task.due_date);
+                    const progress = calculateFuseProgress(task.due_date, task.created_at);
                     const fuseClass = getFuseClass(progress);
                     const timeLeft = new Date(task.due_date) - new Date();
                     const fuseLabel = getFuseLabel(progress, timeLeft);
@@ -420,8 +409,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         `Срок выполнения задачи "${task.title}" истёк!`,
                         'error'
                     );
-                }
-                else if ((dueDate - now) <= 60 * 60 * 1000) {
+                } else if ((dueDate - now) <= 60 * 60 * 1000) {
                     showNotification(
                         `До окончания срока выполнения задачи "${task.title}" осталось менее часа!`,
                         'urgent'
@@ -450,16 +438,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const timeLeft = totalTime;
-        const oneDay = 24 * 60 * 60 * 1000;
-        const percentLeft = (timeLeft / oneDay) * 100;
-
+        const percentLeft = (totalTime / (24 * 60 * 60 * 1000)) * 100;
         const width = Math.min(Math.max(100 - percentLeft, 0), 100);
         fuseElement.style.width = `${width}%`;
 
-        if (timeLeft < oneDay * 0.25) {
+        if (totalTime < (24 * 60 * 60 * 1000 * 0.25)) {
             fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff0000)';
-        } else if (timeLeft < oneDay * 0.5) {
+        } else if (totalTime < (24 * 60 * 60 * 1000 * 0.5)) {
             fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff5e00)';
         } else {
             fuseElement.style.background = 'linear-gradient(90deg, #ff0000, #ff5e00, #ffcc00)';
@@ -476,30 +461,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         let fuseHtml = '';
 
         if (task.due_date && !task.completed) {
-            try {
-                const date = new Date(task.due_date);
-                dueDate = date.toLocaleString('ru-RU', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+            const date = new Date(task.due_date);
+            dueDate = date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
 
-                const progress = calculateFuseProgress(task.due_date);
-                const fuseClass = getFuseClass(progress);
-                const timeLeft = new Date(task.due_date) - new Date();
-                const fuseLabel = getFuseLabel(progress, timeLeft);
+            const progress = calculateFuseProgress(task.due_date, task.created_at);
+            const fuseClass = getFuseClass(progress);
+            const timeLeft = new Date(task.due_date) - new Date();
+            const fuseLabel = getFuseLabel(progress, timeLeft);
 
-                fuseHtml = `
-                    <div class="fuse-container">
-                        <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
-                        <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error formatting date:', error);
-            }
+            fuseHtml = `
+                <div class="fuse-container">
+                    <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
+                    <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
+                </div>
+            `;
         }
 
         taskElement.innerHTML = `
@@ -531,22 +512,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateFuse(taskElement, new Date(dueDateText));
             }
         });
-    }, 1000);
+    }, 60000);
 
     const taskDueDate = document.getElementById('taskDueDate');
     if (taskDueDate) {
+        function setDefaultDueDate() {
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+            taskDueDate.value = tomorrow.toISOString().slice(0, 16);
+        }
 
-    function setDefaultDueDate() {
-        const now = new Date();
-        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
-        taskDueDate.value = tomorrow.toISOString().slice(0, 16);
-    }
-
-    addTaskBtn.addEventListener('click', () => {
-        setDefaultDueDate();
-        taskModal.classList.add('active');
-    });
+        addTaskBtn.addEventListener('click', () => {
+            setDefaultDueDate();
+            taskModal.classList.add('active');
+        });
     }
 
 });

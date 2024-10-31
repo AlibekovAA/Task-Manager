@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -10,15 +10,12 @@ logger = setup_logger(__name__)
 
 class TaskBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
-    description: str | None = Field(None, max_length=1000)
+    description: Optional[str] = Field(None, max_length=1000)
     completed: bool = False
-    due_date: datetime | None = None
+    due_date: Optional[datetime] = None
 
 
 class TaskCreate(TaskBase):
-    user_id: int
-    created_by_id: int
-
     @field_validator('due_date')
     @classmethod
     def validate_due_date(cls, v: datetime | None) -> datetime | None:
@@ -30,10 +27,10 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(TaskBase):
-    title: str | None = None
-    description: str | None = None
-    completed: bool | None = None
-    due_date: datetime | None = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    completed: Optional[bool] = None
+    due_date: Optional[datetime] = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -59,8 +56,8 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    email: str | None = None
-    password: str | None = None
+    email: Optional[str] = None
+    password: Optional[str] = None
 
 
 class User(BaseModel):
@@ -82,7 +79,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: str | None = None
+    email: Optional[str] = None
 
 
 class UserBlockUpdate(BaseModel):

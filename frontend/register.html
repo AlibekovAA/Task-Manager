@@ -13,13 +13,14 @@
     <div class="auth-container">
         <div class="auth-form">
             <h2>Регистрация</h2>
-            <form id="registerForm">
+            <form id="registerForm" autocomplete="on">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email"
                            id="email"
                            name="email"
                            required
+                           autocomplete="email"
                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                            oninput="this.setCustomValidity('')"
                            oninvalid="this.setCustomValidity('Введите корректный email адрес')">
@@ -31,14 +32,19 @@
                            name="password"
                            minlength="6"
                            required
+                           autocomplete="new-password"
                            oninput="this.setCustomValidity('')"
                            oninvalid="this.setCustomValidity('Пароль должен содержать не менее 6 символов')">
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Подтвердите пароль</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <input type="password"
+                           id="confirmPassword"
+                           name="confirmPassword"
+                           required
+                           autocomplete="new-password">
                 </div>
-                <div class="error-message" id="errorMessage"></div>
+                <div class="error-message" id="errorMessage" aria-live="assertive" role="alert"></div>
                 <button type="submit">Зарегистрироваться</button>
             </form>
             <div class="auth-links">

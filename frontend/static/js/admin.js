@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersList = document.getElementById('usersList');
     const logoutBtn = document.getElementById('logoutBtn');
     const notification = document.getElementById('notification');
-    const notificationMessage = notification.querySelector('.notification-message');
     const notificationClose = notification.querySelector('.notification-close');
 
     async function loadUsers() {

@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passwordError = document.getElementById('passwordError');
     const passwordSuccess = document.getElementById('passwordSuccess');
     const logoutBtn = document.getElementById('logoutBtn');
-    const adminMenuItem = document.getElementById('adminMenuItem');
 
     async function loadUserProfile() {
         try {
@@ -46,6 +45,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         passwordError.textContent = '';
         passwordSuccess.textContent = '';
+        passwordError.style.display = 'none';
+        passwordSuccess.style.display = 'none';
 
         const submitButton = passwordForm.querySelector('button[type="submit"]');
         submitButton.disabled = true;
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!newPassword.trim()) {
             passwordError.textContent = 'Новый пароль не может быть пустым';
+            passwordError.style.display = 'block';
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';
             return;
@@ -64,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (newPassword.length < 6) {
             passwordError.textContent = 'Пароль должен содержать не менее 6 символов';
+            passwordError.style.display = 'block';
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';
             return;
@@ -71,6 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (newPassword !== confirmPassword) {
             passwordError.textContent = 'Пароли не совпадают';
+            passwordError.style.display = 'block';
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';
             return;
@@ -90,6 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (checkResponse.ok) {
                 if (currentPassword === newPassword) {
                     passwordError.textContent = 'Новый пароль совпадает с текущим';
+                    passwordError.style.display = 'block';
                     submitButton.disabled = false;
                     submitButton.textContent = 'Сменить пароль';
                     return;
@@ -108,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (response.ok) {
                     passwordSuccess.textContent = 'Пароль успешно изменен';
+                    passwordSuccess.style.display = 'block';
                     passwordForm.reset();
 
                     const formGroups = passwordForm.querySelectorAll('.form-group');
@@ -118,6 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     const data = await response.json();
                     passwordError.textContent = data.detail || 'Ошибка при смене пароля';
+                    passwordError.style.display = 'block';
 
                     const formGroups = passwordForm.querySelectorAll('.form-group');
                     formGroups.forEach(group => {
@@ -127,10 +134,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } else {
                 passwordError.textContent = 'Неверный текущий пароль';
+                passwordError.style.display = 'block';
             }
         } catch (error) {
             console.error('Error changing password:', error);
             passwordError.textContent = 'Ошибка соединения с сервером';
+            passwordError.style.display = 'block';
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';

@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (password !== confirmPassword) {
             errorMessage.textContent = 'Пароли не совпадают';
+            errorMessage.style.display = 'block';
             return;
         }
 
@@ -55,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             errorMessage.textContent = 'Ошибка соединения с сервером';
             console.error('Error:', error);
+        } finally {
+            errorMessage.style.display = 'block';
         }
     });
 });
