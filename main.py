@@ -47,10 +47,13 @@ def get_current_user(db: Annotated[Session, Depends(get_db)], token: token_depen
             raise credentials_exception
         token_data = schemas.TokenData(email=email)
     except JWTError:
+        logger.warning("JWTError: Invalid token")
         raise credentials_exception
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
+        logger.warning(f"User not found: {token_data.email}")
         raise credentials_exception
+    logger.info(f"User authenticated: {user.email}")
     return user
 
 
@@ -60,10 +63,14 @@ form_data_dependency = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]):
+    logger.info(f"Creating user with email: {user.email}")
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
+        logger.warning(f"Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
+    new_user = crud.create_user(db=db, user=user)
+    logger.info(f"User created: {new_user.email}")
+    return new_user
 
 
 @app.get("/users/me/", response_model=schemas.User)
@@ -83,8 +90,10 @@ def login_for_access_token(
     db: Annotated[Session, Depends(get_db)],
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
+    logger.info(f"Logging in user: {form_data.username}")
     user = auth.authenticate_user(db, form_data.username, form_data.password)
     if not user:
+        logger.warning("Invalid username or password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный email или пароль, либо аккаунт заблокирован",
@@ -98,6 +107,7 @@ def login_for_access_token(
     )
     refresh_token = auth.create_refresh_token(data={"sub": user.email})
 
+    logger.info(f"Tokens generated for user: {user.email}")
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -107,13 +117,16 @@ def login_for_access_token(
 
 @app.post("/token/refresh", response_model=schemas.Token)
 async def refresh_token(refresh_token: str = refresh_token_body):
+    logger.info("Refreshing access token")
     new_access_token = auth.refresh_access_token(refresh_token)
     if not new_access_token:
+        logger.warning("Invalid refresh token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token"
         )
 
+    logger.info("Access token refreshed successfully")
     return {
         "access_token": new_access_token,
         "refresh_token": refresh_token,
@@ -123,49 +136,66 @@ async def refresh_token(refresh_token: str = refresh_token_body):
 
 @app.get("/users/", response_model=list[schemas.User])
 def read_users(db: Annotated[Session, Depends(get_db)], skip: int = 0, limit: int = 10):
+    logger.info(f"Reading users: skip={skip}, limit={limit}")
     users = crud.get_users(db, skip=skip, limit=limit)
+    logger.info(f"Found {len(users)} users")
     return users
 
 
 @app.get("/users/{user_id}", response_model=schemas.User)
 def read_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    logger.info(f"Reading user: {user_id}")
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
+        logger.warning(f"User not found: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
 @app.put("/users/{user_id}", response_model=schemas.User)
 def update_user(user_id: int, user_update: schemas.UserUpdate, db: Annotated[Session, Depends(get_db)]):
+    logger.info(f"Updating user: {user_id}")
     db_user = crud.update_user(db, user_id=user_id, user_update=user_update)
     if db_user is None:
+        logger.warning(f"User not found: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
+    logger.info(f"User updated: {db_user.email}")
     return db_user
 
 
 @app.delete("/users/{user_id}", response_model=schemas.User)
 def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    logger.info(f"Deleting user: {user_id}")
     db_user = crud.delete_user(db, user_id=user_id)
     if db_user is None:
+        logger.warning(f"User not found: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
+    logger.info(f"User deleted: {db_user.email}")
     return db_user
 
 
 @app.post("/tasks/", response_model=schemas.TaskResponse)
 def create_task(task: schemas.TaskCreate, db: db_dependency, current_user: current_user_dependency):
-    return crud.create_task(db=db, task=task, user_id=current_user.id, created_by_id=current_user.id)
+    logger.info(f"Creating task: {task.title} for user: {current_user.email}")
+    new_task = crud.create_task(db=db, task=task, user_id=current_user.id, created_by_id=current_user.id)
+    logger.info(f"Task created: {new_task.title}")
+    return new_task
 
 
 @app.get("/tasks/", response_model=List[schemas.TaskResponse])
 def read_tasks(db: db_dependency, current_user: current_user_dependency):
+    logger.info(f"Reading tasks for user: {current_user.email}")
     tasks = crud.get_user_tasks(db, user_id=current_user.id)
+    logger.info(f"Found {len(tasks)} tasks for user: {current_user.email}")
     return tasks
 
 
 @app.get("/tasks/{task_id}", response_model=schemas.TaskResponse)
 def read_task(task_id: int, db: db_dependency, current_user: current_user_dependency):
+    logger.info(f"Reading task: {task_id} for user: {current_user.email}")
     db_task = crud.get_task(db, task_id=task_id, user_id=current_user.id)
     if db_task is None:
+        logger.warning(f"Task not found: {task_id}")
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
 
@@ -177,8 +207,10 @@ def update_task(
     db: db_dependency,
     current_user: current_user_dependency
 ):
+    logger.info(f"Updating task: {task_id} for user: {current_user.email}")
     db_task = crud.get_task(db, task_id=task_id, user_id=current_user.id)
     if db_task is None:
+        logger.warning(f"Task not found: {task_id}")
         raise HTTPException(status_code=404, detail="Task not found")
 
     update_data = task_update.model_dump(exclude_unset=True)
@@ -187,14 +219,18 @@ def update_task(
 
     db.commit()
     db.refresh(db_task)
+    logger.info(f"Task updated: {db_task.title}")
     return db_task
 
 
 @app.delete("/tasks/{task_id}", response_model=schemas.TaskResponse)
 def delete_task(task_id: int, db: db_dependency, current_user: current_user_dependency):
+    logger.info(f"Deleting task: {task_id} for user: {current_user.email}")
     db_task = crud.delete_task(db=db, task_id=task_id, user_id=current_user.id)
     if db_task is None:
+        logger.warning(f"Task not found: {task_id}")
         raise HTTPException(status_code=404, detail="Task not found")
+    logger.info(f"Task deleted: {db_task.title}")
     return db_task
 
 
@@ -214,16 +250,19 @@ async def change_password(
     db: db_dependency,
     body: dict = password_body
 ):
+    logger.info(f"User {current_user.email} is attempting to change password")
     current_password = body.get("current_password")
     new_password = body.get("new_password")
 
     if not current_password or not new_password:
+        logger.warning("Current or new password not provided")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Необходимо указать текущий и новый  пароль"
+            detail="Необходимо указать текущий и новый пароль"
         )
 
     if not auth.verify_password(current_password, current_user.password_hash):
+        logger.warning(f"User {current_user.email} provided invalid current password")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный текущий пароль"
@@ -231,6 +270,7 @@ async def change_password(
 
     user_update = schemas.UserUpdate(password=new_password)
     crud.update_user(db, current_user.id, user_update)
+    logger.info(f"Password changed successfully for user: {current_user.email}")
     return {"message": "Пароль успешно изменен"}
 
 
@@ -269,7 +309,9 @@ def list_all_users(
     skip: int = 0,
     limit: int = 10
 ):
+    logger.info(f"Admin {current_user.email} is listing all users (skip={skip}, limit={limit})")
     users = crud.get_users(db, skip=skip, limit=limit)
+    logger.info(f"Admin {current_user.email} retrieved {len(users)} users")
     return users
 
 
@@ -281,6 +323,7 @@ def block_user(
     db: db_admin_dependency
 ):
     if user_id == current_user.id:
+        logger.warning(f"Admin {current_user.email} attempted to block themselves")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot block yourself"
@@ -288,6 +331,7 @@ def block_user(
 
     db_user = crud.get_user(db, user_id)
     if not db_user:
+        logger.error(f"User with ID {user_id} not found for admin {current_user.email}")
         raise HTTPException(status_code=404, detail="User not found")
 
     db_user.is_active = block_update.is_active
@@ -302,6 +346,7 @@ def block_user(
 
 @app.get("/token/verify")
 async def verify_token(current_user: current_user_dependency):
+    logger.info(f"Token verified for user {current_user.email}")
     return {
         "valid": True,
         "user": current_user.email,
@@ -321,6 +366,8 @@ async def change_user_role(
     current_user: admin_user_dependency,
     db: db_admin_dependency
 ):
+    logger.info(f"Admin {current_user.email} is changing role for user {user_id} to {role_update.role}")
+
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -329,6 +376,7 @@ async def change_user_role(
 
     user = crud.get_user(db, user_id)
     if not user:
+        logger.error(f"User with ID {user_id} not found for admin {current_user.email}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Пользователь не найден"
@@ -340,7 +388,10 @@ async def change_user_role(
             detail="Невозможно изменить роль администратора"
         )
 
-    return crud.update_user_role(db, user_id, role_update.role)
+    updated_user = crud.update_user_role(db, user_id, role_update.role)
+    logger.info(f"Admin {current_user.email} changed role for user {user.email} to {role_update.role}")
+
+    return updated_user
 
 
 @app.post("/users/me/check-password")
@@ -350,19 +401,23 @@ async def check_password(
     body: dict = password_body
 ):
     password = body.get("password")
+    logger.info(f"User {current_user.email} is checking password")
 
     if not password:
+        logger.warning("Password not provided for password check")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Необходимо указать пароль"
         )
 
     if not auth.verify_password(password, current_user.password_hash):
+        logger.warning(f"User {current_user.email} provided invalid password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный пароль"
         )
 
+    logger.info(f"User {current_user.email} password check successful")
     return {"message": "Пароль верный"}
 
 
@@ -373,7 +428,9 @@ def read_assigned_tasks(
     skip: int = 0,
     limit: int = 10
 ):
+    logger.info(f"User {current_user.email} is retrieving assigned tasks (skip={skip}, limit={limit})")
     tasks = crud.get_assigned_tasks(db, created_by_id=current_user.id, skip=skip, limit=limit)
+    logger.info(f"User {current_user.email} retrieved {len(tasks)} assigned tasks")
     return tasks
 
 
@@ -384,9 +441,12 @@ def reassign_task(
     db: db_dependency,
     current_user: current_user_dependency
 ):
+    logger.info(f"User {current_user.email} is reassigning task {task_id} to user {new_user_id}")
     db_task = crud.reassign_task(db=db, task_id=task_id, new_user_id=new_user_id, created_by_id=current_user.id)
     if db_task is None:
+        logger.error(f"Task {task_id} not found or unauthorized access by user {current_user.email}")
         raise HTTPException(status_code=404, detail="Task not found or unauthorized access")
+    logger.info(f"User {current_user.email} successfully reassigned task {task_id}")
     return db_task
 
 
@@ -396,7 +456,10 @@ def delete_assigned_task(
     db: db_dependency,
     current_user: current_user_dependency
 ):
+    logger.info(f"User {current_user.email} is attempting to delete assigned task {task_id}")
     db_task = crud.delete_assigned_task(db=db, task_id=task_id, created_by_id=current_user.id)
     if db_task is None:
+        logger.error(f"Task {task_id} not found or unauthorized access by user {current_user.email}")
         raise HTTPException(status_code=404, detail="Task not found or unauthorized access")
+    logger.info(f"User {current_user.email} successfully deleted assigned task {task_id}")
     return db_task
