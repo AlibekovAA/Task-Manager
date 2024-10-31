@@ -23,6 +23,7 @@ class User(Base):
     role = Column(String, default='default', nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    created_tasks = relationship("Task", foreign_keys='Task.created_by_id', back_populates="created_by")
 
     def validate_email(self):
         try:
@@ -44,7 +45,9 @@ class Task(Base):
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     due_date = Column(DateTime, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     user = relationship("User", back_populates="tasks")
+    created_by = relationship("User", foreign_keys=[created_by_id], back_populates="created_tasks")
 
     @classmethod
     def create_task(cls, **kwargs):

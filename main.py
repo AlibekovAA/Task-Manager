@@ -364,3 +364,39 @@ async def check_password(
         )
 
     return {"message": "Пароль верный"}
+
+
+@app.get("/assigned-tasks/", response_model=List[schemas.TaskResponse])
+def read_assigned_tasks(
+    db: db_dependency,
+    current_user: current_user_dependency,
+    skip: int = 0,
+    limit: int = 10
+):
+    tasks = crud.get_assigned_tasks(db, created_by_id=current_user.id, skip=skip, limit=limit)
+    return tasks
+
+
+@app.put("/tasks/{task_id}/reassign", response_model=schemas.TaskResponse)
+def reassign_task(
+    task_id: int,
+    new_user_id: int,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    db_task = crud.reassign_task(db=db, task_id=task_id, new_user_id=new_user_id, created_by_id=current_user.id)
+    if db_task is None:
+        raise HTTPException(status_code=404, detail="Task not found or unauthorized access")
+    return db_task
+
+
+@app.delete("/assigned-tasks/{task_id}", response_model=schemas.TaskResponse)
+def delete_assigned_task(
+    task_id: int,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    db_task = crud.delete_assigned_task(db=db, task_id=task_id, created_by_id=current_user.id)
+    if db_task is None:
+        raise HTTPException(status_code=404, detail="Task not found or unauthorized access")
+    return db_task

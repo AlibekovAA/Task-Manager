@@ -111,6 +111,15 @@ def get_task(db: Session, task_id: int, user_id: int):
     ).first()
 
 
+def get_assigned_tasks(db: Session, created_by_id: int, skip: int = 0, limit: int = 10, completed: bool | None = None):
+    query = db.query(models.Task).filter(models.Task.created_by_id == created_by_id)
+
+    if completed is not None:
+        query = query.filter(models.Task.completed == completed)
+
+    return query.order_by(desc(models.Task.created_at)).offset(skip).limit(limit).all()
+
+
 def get_user_tasks(
     db: Session,
     user_id: int,
@@ -126,22 +135,23 @@ def get_user_tasks(
     return query.order_by(desc(models.Task.created_at)).offset(skip).limit(limit).all()
 
 
-def create_task(db: Session, task: schemas.TaskCreate, user_id: int):
+def create_task(db: Session, task: schemas.TaskCreate, user_id: int, created_by_id: int):
     try:
         db_task = models.Task(
             title=task.title,
             description=task.description,
             completed=task.completed,
             due_date=task.due_date,
-            user_id=user_id
+            user_id=user_id,
+            created_by_id=created_by_id
         )
         db.add(db_task)
         db.commit()
         db.refresh(db_task)
-        logger.info(f"Created new task '{task.title}' for user {user_id}")
+        logger.info(f"Created new task '{task.title}' for user {user_id} by creator {created_by_id}")
         return db_task
     except Exception as e:
-        logger.error(f"Error creating task for user {user_id}: {e}")
+        logger.error(f"Error creating task for user {user_id} by creator {created_by_id}: {e}")
         db.rollback()
         raise
 
@@ -161,6 +171,48 @@ def update_task(db: Session, task_id: int, user_id: int, task_update: schemas.Ta
         return None
     except Exception as e:
         logger.error(f"Error updating task {task_id} for user {user_id}: {e}")
+        db.rollback()
+        raise
+
+
+def reassign_task(db: Session, task_id: int, new_user_id: int, created_by_id: int):
+    try:
+        db_task = db.query(models.Task).filter(
+            models.Task.id == task_id,
+            models.Task.created_by_id == created_by_id
+        ).first()
+
+        if db_task:
+            db_task.user_id = new_user_id
+            db.commit()
+            db.refresh(db_task)
+            logger.info(f"Reassigned task ID: {task_id} to new user ID: {new_user_id} by creator {created_by_id}")
+            return db_task
+        logger.warning(f"Task ID: {task_id} not found or not assigned by user {created_by_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error reassigning task {task_id} to user {new_user_id}: {e}")
+        db.rollback()
+        raise
+
+
+def delete_assigned_task(db: Session, task_id: int, created_by_id: int):
+    try:
+        db_task = db.query(models.Task).filter(
+            models.Task.id == task_id,
+            models.Task.created_by_id == created_by_id
+        ).first()
+
+        if db_task:
+            logger.info(f"Deleting assigned task ID: {task_id} created by user {created_by_id}")
+            db.delete(db_task)
+            db.commit()
+            return db_task
+        logger.warning(f"Attempted to delete non-existent or unauthorized task ID: {task_id} ",
+                       f"by creator {created_by_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Error deleting assigned task {task_id} by creator {created_by_id}: {e}")
         db.rollback()
         raise
 
