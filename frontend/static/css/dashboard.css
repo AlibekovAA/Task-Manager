@@ -639,6 +639,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-height: 150px;
 }
 
 .user-info h3 {
