@@ -86,11 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="pm" ${user.role === 'pm' ? 'selected' : ''}>Проджект-менеджер</option>
                         ${isAdmin ? `<option value="admin" selected>Администратор</option>` : ''}
                     </select>
-                    <button class="btn-${user.is_active ? 'danger' : 'success'}"
-                            onclick="toggleUserBlock(${user.id}, ${user.is_active})"
-                            ${isCurrentUser || isAdmin ? 'disabled' : ''}>
-                        ${user.is_active ? 'Заблокировать' : 'Разблокировать'}
-                    </button>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" ${user.is_active ? 'checked' : ''}
+                                onclick="toggleUserBlock(${user.id}, ${user.is_active})"
+                                ${isCurrentUser || isAdmin ? 'disabled' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
             `;
             usersList.appendChild(userElement);
@@ -139,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.toggleUserBlock = async function(userId, currentStatus) {
+        const newStatus = !currentStatus;
         try {
             const response = await fetch(`/admin/users/${userId}/block`, {
                 method: 'PUT',
@@ -147,14 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    is_active: !currentStatus
+                    is_active: newStatus
                 })
             });
 
             if (response.ok) {
                 await loadUsers();
                 showNotification(
-                    currentStatus ? 'Пользователь заблокирован' : 'Пользователь разблокирован',
+                    newStatus ? 'Пользователь разблокирован' : 'Пользователь заблокирован',
                     'success'
                 );
             } else {
