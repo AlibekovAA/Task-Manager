@@ -166,6 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Ошибка соединения с сервером';
         }
     });
+
+    backToStepOne.addEventListener('click', () => {
+        stepTwo.style.display = 'none';
+        stepOne.style.display = 'block';
+        document.getElementById('newPasswordErrorMessage').textContent = '';
+        newPasswordForm.reset();
+    });
 });
 
 async function refreshToken() {
