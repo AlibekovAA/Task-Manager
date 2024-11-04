@@ -283,7 +283,7 @@ button:hover {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.7);
+    transform: translate(-50%, -50%);
     background: linear-gradient(135deg, rgba(147, 0, 255, 0.4), rgba(89, 0, 255, 0.4));
     padding: 2rem;
     width: 90%;
@@ -291,13 +291,17 @@ button:hover {
     border-radius: 10px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    opacity: 0;
-    transition: all 0.3s ease;
+    color: white;
+    text-align: center;
 }
 
-.author-modal.show .author-modal-content {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+.close-modal {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
 }
 
 .author-info {
@@ -311,23 +315,6 @@ button:hover {
     margin-bottom: 20px;
     border: 3px solid white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.author-info h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-.author-title {
-    font-style: italic;
-    margin-bottom: 15px;
-    font-size: 18px;
-}
-
-.author-description {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 20px;
 }
 
 .social-links {
