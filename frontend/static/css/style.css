@@ -135,3 +135,104 @@ button:hover {
 .institute-logo img:hover {
     opacity: 1;
 }
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background: linear-gradient(135deg, rgba(147, 0, 255, 0.4), rgba(89, 0, 255, 0.4));
+    margin: 15% auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.close-modal {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+.forgot-password-link {
+    color: #fff;
+    text-decoration: none;
+    margin-top: 10px;
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.forgot-password-link:hover {
+    opacity: 1;
+}
+
+.reset-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.reset-header h2 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+}
+
+.back-button {
+    background: #2196F3;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: opacity 0.3s;
+    width: 48%;
+}
+
+.back-button:hover {
+    opacity: 1;
+}
+
+.btn-primary {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 48%;
+    transition: opacity 0.3s;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-primary:disabled {
+    background: #2196F3;
+    cursor: not-allowed;
+}

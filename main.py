@@ -34,7 +34,7 @@ refresh_token_body = Body(...)
 password_body = Body(...)
 
 
-def get_current_user(db: Annotated[Session, Depends(get_db)], token: token_dependency):
+def get_current_user(db: db_dependency, token: token_dependency):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -62,7 +62,7 @@ form_data_dependency = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]):
+def create_user(user: schemas.UserCreate, db: db_dependency):
     logger.info(f"Creating user with email: {user.email}")
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -87,7 +87,7 @@ def read_users_me(current_user: current_user_dependency):
 
 @app.post("/token", response_model=schemas.Token)
 def login_for_access_token(
-    db: Annotated[Session, Depends(get_db)],
+    db: db_dependency,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
     logger.info(f"Logging in user: {form_data.username}")
@@ -135,7 +135,7 @@ async def refresh_token(refresh_token: str = refresh_token_body):
 
 
 @app.get("/users/", response_model=list[schemas.User])
-def read_users(db: Annotated[Session, Depends(get_db)], skip: int = 0, limit: int = 10):
+def read_users(db: db_dependency, skip: int = 0, limit: int = 10):
     logger.info(f"Reading users: skip={skip}, limit={limit}")
     users = crud.get_users(db, skip=skip, limit=limit)
     logger.info(f"Found {len(users)} users")
@@ -143,7 +143,7 @@ def read_users(db: Annotated[Session, Depends(get_db)], skip: int = 0, limit: in
 
 
 @app.get("/users/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+def read_user(user_id: int, db: db_dependency):
     logger.info(f"Reading user: {user_id}")
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
@@ -153,7 +153,7 @@ def read_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
 
 
 @app.put("/users/{user_id}", response_model=schemas.User)
-def update_user(user_id: int, user_update: schemas.UserUpdate, db: Annotated[Session, Depends(get_db)]):
+def update_user(user_id: int, user_update: schemas.UserUpdate, db: db_dependency):
     logger.info(f"Updating user: {user_id}")
     db_user = crud.update_user(db, user_id=user_id, user_update=user_update)
     if db_user is None:
@@ -164,7 +164,7 @@ def update_user(user_id: int, user_update: schemas.UserUpdate, db: Annotated[Ses
 
 
 @app.delete("/users/{user_id}", response_model=schemas.User)
-def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+def delete_user(user_id: int, db: db_dependency):
     logger.info(f"Deleting user: {user_id}")
     db_user = crud.delete_user(db, user_id=user_id)
     if db_user is None:
@@ -463,3 +463,55 @@ def delete_assigned_task(
         raise HTTPException(status_code=404, detail="Task not found or unauthorized access")
     logger.info(f"User {current_user.email} successfully deleted assigned task {task_id}")
     return db_task
+
+
+@app.post("/users/verify-reset", response_model=dict)
+def verify_reset_credentials(
+    reset_request: schemas.PasswordResetRequest,
+    db: db_dependency
+):
+    user = crud.get_user_by_email(db, reset_request.email)
+    if not user:
+        logger.warning(f"Password reset attempted for non-existent email: {reset_request.email}")
+        raise HTTPException(
+            status_code=404,
+            detail="Пользователь с таким email не найден"
+        )
+
+    if not auth.verify_secret_word(reset_request.secret_word, user.secret_word):
+        logger.warning(f"Invalid secret word provided for password reset: {reset_request.email}")
+        raise HTTPException(
+            status_code=400,
+            detail="Неверное кодовое слово"
+        )
+
+    logger.info(f"Password reset credentials verified for user: {reset_request.email}")
+    return {"message": "Данные подтверждены"}
+
+
+@app.post("/users/reset-password", response_model=dict)
+def reset_password(
+    reset_data: schemas.PasswordReset,
+    db: db_dependency
+):
+    user = crud.get_user_by_email(db, reset_data.email)
+    if not user:
+        logger.warning(f"Password reset attempted for non-existent email: {reset_data.email}")
+        raise HTTPException(
+            status_code=404,
+            detail="Пользователь с таким email не найден"
+        )
+
+    if not auth.verify_secret_word(reset_data.secret_word, user.secret_word):
+        logger.warning(f"Invalid secret word provided for password reset: {reset_data.email}")
+        raise HTTPException(
+            status_code=400,
+            detail="Неверное кодовое слово"
+        )
+
+    hashed_password = auth.get_password_hash(reset_data.new_password)
+    user.password_hash = hashed_password
+    db.commit()
+
+    logger.info(f"Password successfully reset for user: {reset_data.email}")
+    return {"message": "Пароль успешно изменен"}

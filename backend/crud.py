@@ -44,13 +44,14 @@ def get_users(db: Session, skip: int = 0, limit: int = 10):
     return users
 
 
-def create_user(db: Session, user: schemas.UserCreate):
-    logger.info(f"Attempting to create new user with email: {user.email}")
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     try:
         hashed_password = get_password_hash(user.password)
+        hashed_secret_word = get_password_hash(user.secret_word)
         db_user = models.User(
             email=user.email,
-            password_hash=hashed_password
+            password_hash=hashed_password,
+            secret_word=hashed_secret_word,
         )
         db.add(db_user)
         db.commit()
@@ -58,8 +59,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         logger.info(f"Successfully created new user with email: {user.email}")
         return db_user
     except Exception as e:
-        logger.error(f"Error creating user {user.email}: {e}")
-        db.rollback()
+        logger.error(f"Error creating user: {e}")
         raise
 
 

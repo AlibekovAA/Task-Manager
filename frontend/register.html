@@ -44,6 +44,16 @@
                            required
                            autocomplete="new-password">
                 </div>
+                <div class="form-group">
+                    <label for="secretWord">Кодовое слово</label>
+                    <input type="password"
+                           id="secretWord"
+                           name="secretWord"
+                           required
+                           minlength="3"
+                           maxlength="50"
+                           autocomplete="off">
+                </div>
                 <div class="error-message" id="errorMessage" aria-live="assertive" role="alert"></div>
                 <button type="submit">Зарегистрироваться</button>
             </form>

@@ -19,6 +19,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
+    secret_word = Column(String, nullable=False)
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     role = Column(String, default='default', nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)

@@ -40,6 +40,132 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error:', error);
         }
     });
+
+    const loginSection = document.getElementById('loginSection');
+    const resetSection = document.getElementById('resetSection');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const backToLogin = document.getElementById('backToLogin');
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    const newPasswordForm = document.getElementById('newPasswordForm');
+    const stepOne = document.getElementById('stepOne');
+    const stepTwo = document.getElementById('stepTwo');
+
+    let resetEmail = '';
+    let resetSecretWord = '';
+
+    forgotPasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginSection.style.display = 'none';
+        resetSection.style.display = 'block';
+        resetPasswordForm.reset();
+        newPasswordForm.reset();
+        stepOne.style.display = 'block';
+        stepTwo.style.display = 'none';
+    });
+
+    backToLogin.addEventListener('click', () => {
+        resetSection.style.display = 'none';
+        loginSection.style.display = 'block';
+        resetPasswordForm.reset();
+        newPasswordForm.reset();
+        document.getElementById('resetErrorMessage').textContent = '';
+        document.getElementById('newPasswordErrorMessage').textContent = '';
+    });
+
+    resetPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = resetPasswordForm.resetEmail.value;
+        const secretWord = resetPasswordForm.secretWord.value;
+
+        try {
+            const response = await fetch('/users/verify-reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    secret_word: secretWord
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                resetEmail = email;
+                resetSecretWord = secretWord;
+                stepOne.style.display = 'none';
+                stepTwo.style.display = 'block';
+                document.getElementById('resetErrorMessage').textContent = '';
+            } else {
+                const errorMessage = document.getElementById('resetErrorMessage');
+                errorMessage.style.color = '#ff3333';
+
+                switch (response.status) {
+                    case 404:
+                        errorMessage.textContent = 'Пользователь с таким email не найден';
+                        break;
+                    case 400:
+                        errorMessage.textContent = 'Неверное кодовое слово';
+                        break;
+                    case 422:
+                        errorMessage.textContent = 'Проверьте правильность введенных данных';
+                        break;
+                    default:
+                        errorMessage.textContent = data.detail || 'Произошла ошибка при проверке данных';
+                }
+            }
+        } catch (error) {
+            const errorMessage = document.getElementById('resetErrorMessage');
+            errorMessage.style.color = '#ff3333';
+            errorMessage.textContent = 'Ошибка соединения с сервером. Попробуйте позже.';
+        }
+    });
+
+    newPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPassword = newPasswordForm.newPassword.value;
+        const confirmPassword = newPasswordForm.confirmNewPassword.value;
+
+        if (newPassword !== confirmPassword) {
+            document.getElementById('newPasswordErrorMessage').textContent =
+                'Пароли не совпадают';
+            return;
+        }
+
+        try {
+            const response = await fetch('/users/reset-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: resetEmail,
+                    secret_word: resetSecretWord,
+                    new_password: newPassword
+                }),
+            });
+
+            if (response.ok) {
+                resetSection.style.display = 'none';
+                loginSection.style.display = 'block';
+                resetPasswordForm.reset();
+                newPasswordForm.reset();
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.color = '#388e3c';
+                errorMessage.textContent = 'Пароль успешно изменен! Теперь вы можете войти.';
+                resetEmail = '';
+                resetSecretWord = '';
+            } else {
+                const data = await response.json();
+                document.getElementById('newPasswordErrorMessage').textContent =
+                    data.detail || 'Ошибка при смене пароля';
+            }
+        } catch (error) {
+            document.getElementById('newPasswordErrorMessage').textContent =
+                'Ошибка соединения с сервером';
+        }
+    });
 });
 
 async function refreshToken() {

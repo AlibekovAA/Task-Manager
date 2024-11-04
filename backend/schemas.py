@@ -53,6 +53,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=100)
+    secret_word: str = Field(..., min_length=3, max_length=50)
 
 
 class UserUpdate(BaseModel):
@@ -106,3 +107,14 @@ class UserRoleUpdate(BaseModel):
         if value not in ['user', 'admin', 'pm']:
             raise ValueError('Role must be either user, admin or pm')
         return value
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+    secret_word: str
+
+
+class PasswordReset(BaseModel):
+    email: EmailStr
+    secret_word: str
+    new_password: str = Field(..., min_length=6, max_length=100)

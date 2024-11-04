@@ -3,7 +3,7 @@ from typing import Generator
 import backend.crud as crud
 import backend.schemas as schemas
 from backend.database import SessionLocal
-from backend.config import ADMIN_EMAIL, ADMIN_PASSWORD
+from backend.config import ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_SECRET_WORD
 from backend.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -16,7 +16,8 @@ def create_admin_user() -> None:
             if not admin:
                 admin_user = schemas.UserCreate(
                     email=ADMIN_EMAIL,
-                    password=ADMIN_PASSWORD
+                    password=ADMIN_PASSWORD,
+                    secret_word=ADMIN_SECRET_WORD
                 )
                 admin = crud.create_user(db=db, user=admin_user)
                 admin.role = "admin"

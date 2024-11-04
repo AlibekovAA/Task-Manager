@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = formData.get('email');
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
+        const secretWord = formData.get('secretWord');
 
         if (password !== confirmPassword) {
             errorMessage.textContent = 'Пароли не совпадают';
@@ -24,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     email: email,
-                    password: password
+                    password: password,
+                    secret_word: secretWord
                 }),
             });
 

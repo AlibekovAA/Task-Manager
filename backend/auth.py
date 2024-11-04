@@ -118,3 +118,7 @@ def refresh_access_token(refresh_token: str):
     except JWTError as e:
         logger.warning(f"Invalid refresh token: {e}")
         return None
+
+
+def verify_secret_word(plain_secret_word: str, hashed_secret_word: str) -> bool:
+    return pwd_context.verify(plain_secret_word, hashed_secret_word)
