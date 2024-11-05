@@ -340,15 +340,16 @@ button:disabled {
 .modal-content {
     background: linear-gradient(135deg, rgba(147, 0, 255, 0.8), rgba(89, 0, 255, 0.8));
     margin: 5% auto;
-    padding: 2rem;
+    padding: 2.5rem;
     border-radius: 12px;
-    max-width: 600px;
-    max-height: 500px;
+    max-width: 560px;
+    max-height: 560px;
     width: 90%;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
 }
 
 .modal-content h3 {
@@ -415,7 +416,7 @@ button:disabled {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 3rem;
     width: 100%;
 }
 
@@ -968,3 +969,39 @@ input:checked + .slider:before {
     top: 10px;
     right: 10px;
 }
+
+select#taskPriority {
+    width: 107%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+select#taskPriority option {
+    padding: 8px;
+    background: #2c3e50;
+    color: var(--text-primary);
+}
+
+.task-priority,
+.priority-1,
+.priority-2,
+.priority-3,
+.priority-4 {
+    font-size: 0.9rem;
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-left: 8px;
+    font-weight: 500;
+    display: inline-block;
+    color: white;
+}
+
+.priority-1 { background: var(--danger-color); }
+.priority-2 { background: var(--warning-color); color: #2c3e50; }
+.priority-3 { background: #3498db; }
+.priority-4 { background: #95a5a6; }

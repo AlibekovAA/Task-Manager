@@ -13,6 +13,14 @@ class TaskBase(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     completed: bool = False
     due_date: Optional[datetime] = None
+    priority: int = Field(default=3, ge=1, le=4)
+
+    @field_validator('priority')
+    @classmethod
+    def validate_priority(cls, v: int) -> int:
+        if v < 1 or v > 4:
+            raise ValueError('Приоритет должен быть от 1 до 4')
+        return v
 
 
 class TaskCreate(TaskBase):

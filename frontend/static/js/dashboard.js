@@ -451,57 +451,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function renderTask(task) {
-        const taskElement = document.createElement('div');
-        const isExpired = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
-        taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
-        taskElement.dataset.createdAt = task.created_at;
-
-        let dueDate = '';
-        let fuseHtml = '';
-
-        if (task.due_date && !task.completed) {
-            const date = new Date(task.due_date);
-            dueDate = date.toLocaleString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const progress = calculateFuseProgress(task.due_date, task.created_at);
-            const fuseClass = getFuseClass(progress);
-            const timeLeft = new Date(task.due_date) - new Date();
-            const fuseLabel = getFuseLabel(progress, timeLeft);
-
-            fuseHtml = `
-                <div class="fuse-container">
-                    <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
-                    <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
-                </div>
-            `;
-        }
-
-        taskElement.innerHTML = `
-            <div class="task-info">
-                <h3>${task.title}</h3>
-                <p>${task.description || ''}</p>
-                ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
-                ${fuseHtml}
-            </div>
-            <div class="task-actions">
-                <button class="btn-success ${task.completed ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
-                        onclick="toggleTaskComplete(${task.id}, ${task.completed})"
-                        ${isExpired ? 'disabled' : ''}>
-                    ${task.completed ? 'Отменить выполнение' : 'Выполнить'}
-                </button>
-                <button class="btn-secondary" onclick="editTask(${task.id})">Изменить</button>
-                <button class="btn-danger" onclick="showDeleteConfirmModal(${task.id})">Удалить</button>
-            </div>
-        `;
-
-        return taskElement;
+    function getPriorityLabel(priority) {
+        const priorities = {
+            1: 'Критический',
+            2: 'Высокий',
+            3: 'Средний',
+            4: 'Низкий'
+        };
+        return priorities[priority] || 'Средний';
     }
 
     setInterval(() => {
