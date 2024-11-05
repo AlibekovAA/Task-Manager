@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #9300ff;
-    --primary-dark: #5900ff;
+    --primary-color: #f38021;
+    --primary-dark: #fb6900;
     --success-color: #2ecc71;
     --success-dark: #27ae60;
     --danger-color: #e74c3c;
@@ -78,6 +78,8 @@ body {
 .btn-success {
     padding: 0.8rem 1.5rem;
     border: none;
+    background: var(--primary-color);
+    color: var(--text-primary);
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
@@ -87,12 +89,15 @@ body {
 }
 
 .btn-primary {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid var(--border-color);
+    background: var(--primary-color);
+    color: var(--text-primary);
+    border: none;
 }
 
 .btn-primary:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .btn-danger {
