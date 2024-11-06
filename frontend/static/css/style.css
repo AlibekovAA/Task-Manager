@@ -304,3 +304,35 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
 .modal-buttons button {
     max-width: calc(50% - 0.5rem);
 }
+
+.firework {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #fff;
+    pointer-events: none;
+    animation: explode 1s ease-out forwards;
+    box-shadow:
+        0 0 10px #fff,
+        0 0 20px #fff,
+        0 0 30px #ff00ff,
+        0 0 40px #ff00ff;
+}
+
+@keyframes explode {
+    0% {
+        transform: translate(0, 0);
+        opacity: 1;
+        scale: 1;
+    }
+    50% {
+        opacity: 1;
+        scale: 1.2;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty));
+        opacity: 0;
+        scale: 0.1;
+    }
+}

@@ -36,8 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const usersList = document.getElementById('usersList');
     const logoutBtn = document.getElementById('logoutBtn');
-    const notification = document.getElementById('notification');
-    const notificationClose = notification.querySelector('.notification-close');
 
     async function loadUsers() {
         try {
@@ -55,10 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = '/';
             } else if (response.status === 403) {
                 window.location.href = '/dashboard.html';
+            } else {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
             }
         } catch (error) {
             console.error('Error loading users:', error);
-            showNotification('Ошибка при загрузке пользователей', 'error');
+            notificationService.show('Ошибка при загрузке пользователей', 'error');
         }
     }
 
@@ -99,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
             usersList.appendChild(userElement);
         });
     }
+
+    const notification = document.getElementById('notification');
+    const notificationClose = notification.querySelector('.notification-close');
 
     function showNotification(message, type = 'error') {
         const notificationElement = document.createElement('div');

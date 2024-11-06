@@ -546,4 +546,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const filterBtn = document.getElementById('filterBtn');
+    const filterMenu = document.querySelector('.filter-menu');
+    const filterTypes = document.querySelectorAll('.filter-type');
+    const filterOptions = document.querySelectorAll('.filter-options');
+    let currentFilter = { type: null, value: null };
+
+    filterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterMenu.classList.toggle('active');
+        sortMenu.classList.remove('active');
+    });
+
+    filterTypes.forEach(type => {
+        type.addEventListener('click', () => {
+            const filterType = type.dataset.type;
+            filterOptions.forEach(option => {
+                option.style.display = option.id === `${filterType}Filter` ? 'block' : 'none';
+            });
+        });
+    });
+
+    document.querySelector('#nameFilter input').addEventListener('input', (e) => {
+        currentFilter = { type: 'name', value: e.target.value };
+        applyFilters();
+    });
+
+    document.querySelector('#priorityFilter select').addEventListener('change', (e) => {
+        currentFilter = { type: 'priority', value: e.target.value };
+        applyFilters();
+    });
+
+    document.querySelector('#statusFilter select').addEventListener('change', (e) => {
+        currentFilter = { type: 'status', value: e.target.value };
+        applyFilters();
+    });
+
+    function applyFilters() {
+        const tasks = document.querySelectorAll('.task-item');
+
+        tasks.forEach(task => {
+            let show = true;
+
+            if (currentFilter.type === 'name' && currentFilter.value) {
+                const title = task.querySelector('h3').textContent.toLowerCase();
+                const regex = new RegExp(currentFilter.value.toLowerCase());
+                show = regex.test(title);
+            }
+
+            if (currentFilter.type === 'priority' && currentFilter.value) {
+                const priority = task.querySelector('[class^="priority-"]').className.match(/priority-(\d)/)[1];
+                show = priority === currentFilter.value;
+            }
+
+            if (currentFilter.type === 'status' && currentFilter.value) {
+                const isCompleted = task.classList.contains('completed');
+                show = (currentFilter.value === 'completed' && isCompleted) ||
+                       (currentFilter.value === 'active' && !isCompleted);
+            }
+
+            task.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+            filterMenu.classList.remove('active');
+        }
+    });
+
 });

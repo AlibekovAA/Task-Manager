@@ -28,7 +28,7 @@
             <header>
                 <h2>Мои задачи</h2>
                 <div class="header-buttons">
-                    <button id="addTaskBtn" class="btn-primary">Добавить задачу</button>
+                    <button id="addTaskBtn" class="btn-primary"><i class="fas fa-edit"></i> Добавить задачу</button>
                     <div class="sort-dropdown">
                         <button id="sortBtn" class="btn-primary">
                             <i class="fas fa-sort"></i> Сортировка
@@ -51,6 +51,44 @@
                                 <button class="sort-option" data-sort="due_date" data-order="desc">
                                     <i class="fas fa-sort-amount-down"></i> Сначала дальние
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-dropdown">
+                        <button id="filterBtn" class="btn-primary">
+                            <i class="fas fa-filter"></i> Фильтры
+                        </button>
+                        <div class="filter-menu">
+                            <div class="filter-group">
+                                <span class="filter-label">Фильтровать по:</span>
+                                <button class="filter-type" data-type="name">
+                                    <i class="fas fa-font"></i> Название
+                                </button>
+                                <button class="filter-type" data-type="priority">
+                                    <i class="fas fa-exclamation"></i> Приоритет
+                                </button>
+                                <button class="filter-type" data-type="status">
+                                    <i class="fas fa-check-circle"></i> Статус
+                                </button>
+                            </div>
+                            <div class="filter-options" id="nameFilter" style="display: none;">
+                                <input type="text" placeholder="Введите название задачи" class="filter-input">
+                            </div>
+                            <div class="filter-options" id="priorityFilter" style="display: none;">
+                                <select class="filter-select">
+                                    <option value="">Все приоритеты</option>
+                                    <option value="1">Критический</option>
+                                    <option value="2">Высокий</option>
+                                    <option value="3">Средний</option>
+                                    <option value="4">Низкий</option>
+                                </select>
+                            </div>
+                            <div class="filter-options" id="statusFilter" style="display: none;">
+                                <select class="filter-select">
+                                    <option value="">Все задачи</option>
+                                    <option value="completed">Завершённые</option>
+                                    <option value="active">Незавершённые</option>
+                                </select>
                             </div>
                         </div>
                     </div>

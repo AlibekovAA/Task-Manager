@@ -1275,3 +1275,177 @@ select#taskPriority option {
     border-top: 1px solid var(--border-color);
     transform: translateX(-50%) rotate(45deg);
 }
+
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(147, 0, 255, 0.95), rgba(89, 0, 255, 0.95));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 220px;
+    z-index: 1000;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    transform-origin: top center;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.filter-menu.active {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.filter-group {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-label {
+    display: block;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.filter-type {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.filter-type:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-type i {
+    width: 16px;
+}
+
+.filter-options {
+    padding: 8px 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.filter-input,
+.filter-select {
+    width: 100%;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.filter-select option {
+    background: #2c3e50;
+    color: var(--text-primary);
+    padding: 8px;
+}
+
+#filterBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-color);
+    color: var(--text-primary);
+}
+
+#filterBtn:hover {
+    background: var(--primary-dark);
+}
+
+#filterBtn i {
+    font-size: 0.9rem;
+}
+
+.filter-menu::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: rgba(147, 0, 255, 0.95);
+    border-left: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.filter-options input.filter-input {
+    margin-left: 1px;
+    width: calc(100% - 20px);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+}
+
+#addTaskBtn i {
+    margin-right: 8px;
+    font-size: 0.9rem;
+}
+
+.firework {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #fff;
+    pointer-events: none;
+    animation: explode 1s ease-out forwards;
+    box-shadow:
+        0 0 10px #fff,
+        0 0 20px #fff,
+        0 0 30px #ff00ff,
+        0 0 40px #ff00ff;
+}
+
+@keyframes explode {
+    0% {
+        transform: translate(0, 0);
+        opacity: 1;
+        scale: 1;
+    }
+    50% {
+        opacity: 1;
+        scale: 1.2;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty));
+        opacity: 0;
+        scale: 0.1;
+    }
+}
