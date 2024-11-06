@@ -357,12 +357,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
 
         const selectedPriority = parseInt(document.getElementById('taskPriority').value);
+        const dueDate = document.getElementById('taskDueDate').value;
+
+        if (dueDate) {
+            const selectedDate = new Date(dueDate);
+            const now = new Date();
+
+            if (selectedDate < now) {
+                showNotification('Дата выполнения не может быть в прошлом', 'error');
+                return;
+            }
+        }
 
         const formData = {
             title: document.getElementById('taskTitle').value,
             priority: selectedPriority,
             description: document.getElementById('taskDescription').value,
-            due_date: document.getElementById('taskDueDate').value || null
+            due_date: dueDate || null
         };
 
         try {

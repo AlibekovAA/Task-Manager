@@ -192,6 +192,38 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     z-index: 10;
 }
 
+.logo-ivti {
+    width: 100%;
+    height: auto;
+    filter: brightness(0) invert(0.7);
+    transition: all 0.3s ease;
+    position: relative;
+    transform-origin: center center;
+}
+
+.logo-ivti:hover {
+    filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+}
+
+.logo-ivti:not(:hover) {
+    filter: brightness(0) invert(0.7);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    }
+    50% {
+        transform: scale(1.05);
+        filter: brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    }
+    100% {
+        transform: scale(1);
+        filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    }
+}
+
 .institute-logo img {
     width: 100%;
     height: auto;
