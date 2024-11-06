@@ -377,8 +377,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const response = await fetch('/tasks/', {
-                method: editingTaskId ? 'PUT' : 'POST',
+            const url = editingTaskId ? `/tasks/${editingTaskId}` : '/tasks/';
+            const method = editingTaskId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -406,11 +409,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 editingTaskId = null;
             } else {
                 const errorData = await response.json();
-                showNotification(errorData.detail || 'Ошибка при создании задачи', 'error');
+                showNotification(errorData.detail || 'Ошибка при сохранении задачи', 'error');
             }
         } catch (error) {
             console.error('Error creating/updating task:', error);
-            showNotification('Ошибка при создании задачи', 'error');
+            showNotification('Ошибка при сохранении задачи', 'error');
         }
     });
 
