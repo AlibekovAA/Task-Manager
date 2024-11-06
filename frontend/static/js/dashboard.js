@@ -125,7 +125,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `✓ В работе  (${timeLeftStr})`;
     }
 
+    const sortBtn = document.getElementById('sortBtn');
+    const sortMenu = document.querySelector('.sort-menu');
+    let currentSort = { field: null, order: null };
+
+    sortBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sortMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!sortMenu.contains(e.target) && !sortBtn.contains(e.target)) {
+            sortMenu.classList.remove('active');
+        }
+    });
+
+    document.querySelectorAll('.sort-option').forEach(option => {
+        option.addEventListener('click', async () => {
+            const sortField = option.dataset.sort;
+            const sortOrder = option.dataset.order;
+
+            currentSort = { field: sortField, order: sortOrder };
+            await loadTasks();
+            sortMenu.classList.remove('active');
+        });
+    });
+
     function renderTasks(tasks) {
+        if (currentSort.field) {
+            tasks.sort((a, b) => {
+                let comparison = 0;
+
+                if (currentSort.field === 'priority') {
+                    comparison = b.priority - a.priority;
+                } else if (currentSort.field === 'due_date') {
+                    const dateA = a.due_date ? new Date(a.due_date) : new Date(8640000000000000);
+                    const dateB = b.due_date ? new Date(b.due_date) : new Date(8640000000000000);
+                    comparison = dateA - dateB;
+                }
+
+                return currentSort.order === 'desc' ? -comparison : comparison;
+            });
+        }
+
         tasksList.innerHTML = '';
         tasks.forEach(task => {
             const taskElement = document.createElement('div');
@@ -164,19 +206,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             taskElement.innerHTML = `
                 <div class="task-info">
-                    <h3>${task.title}</h3>
+                    <div class="task-header">
+                        <h3>${task.title}</h3>
+                        <span class="priority-${task.priority || 3}">${getPriorityLabel(task.priority || 3)}</span>
+                    </div>
                     <p>${task.description || ''}</p>
                     ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
                     ${fuseHtml}
                 </div>
                 <div class="task-actions">
-                    <button class="btn-success ${task.completed ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
+                    <button class="action-btn complete-btn ${task.completed ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
                             onclick="toggleTaskComplete(${task.id}, ${task.completed})"
                             ${isExpired ? 'disabled' : ''}>
-                        ${task.completed ? 'Отменить выполнение' : 'Выполнить'}
+                        <i class="fas fa-check"></i>
                     </button>
-                    <button class="btn-secondary" onclick="editTask(${task.id})">Изменить</button>
-                    <button class="btn-danger" onclick="showDeleteConfirmModal(${task.id})">Удалить</button>
+                    <button class="action-btn edit-btn" onclick="editTask(${task.id})">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="showDeleteConfirmModal(${task.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `;
             tasksList.appendChild(taskElement);
@@ -282,6 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 taskForm.title.value = task.title;
                 taskForm.description.value = task.description || '';
+                taskForm.priority.value = task.priority || 3;
                 if (task.due_date) {
                     const date = new Date(task.due_date);
                     const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -305,55 +355,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     taskForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const formData = new FormData(taskForm);
-        const dueDate = formData.get('due_date');
 
-        if (dueDate) {
-            const selectedDate = new Date(dueDate);
-            const now = new Date();
+        const selectedPriority = parseInt(document.getElementById('taskPriority').value);
 
-            if (selectedDate < now) {
-                showNotification('Дата и время выполнения не могут быть в прошлом', 'error');
-                return;
-            }
-        }
-
-        const taskData = {
-            title: formData.get('title'),
-            description: formData.get('description'),
-            due_date: dueDate || null
+        const formData = {
+            title: document.getElementById('taskTitle').value,
+            priority: selectedPriority,
+            description: document.getElementById('taskDescription').value,
+            due_date: document.getElementById('taskDueDate').value || null
         };
 
         try {
-            const url = editingTaskId ? `/tasks/${editingTaskId}` : '/tasks/';
-            const method = editingTaskId ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method: method,
+            const response = await fetch('/tasks/', {
+                method: editingTaskId ? 'PUT' : 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(taskData)
+                body: JSON.stringify(formData)
             });
 
             if (response.ok) {
+                const result = await response.json();
+
+                if (result.priority !== selectedPriority) {
+                    console.error('Priority mismatch:', {
+                        sent: selectedPriority,
+                        received: result.priority
+                    });
+                }
+
                 taskModal.classList.remove('active');
                 taskForm.reset();
                 await loadTasks();
                 showNotification(
-                    editingTaskId ? 'Задача успешно обновлена' : 'Задача успешно создана',
+                    editingTaskId ? 'Задача успешно обновлена!' : 'Задача успешно создана!',
                     'success'
                 );
                 editingTaskId = null;
-                document.querySelector('#taskModal h3').textContent = 'Новая задача';
             } else {
                 const errorData = await response.json();
-                showNotification(errorData.detail || 'Ошибка при сохранении задачи', 'error');
+                showNotification(errorData.detail || 'Ошибка при создании задачи', 'error');
             }
         } catch (error) {
-            console.error('Error saving task:', error);
-            showNotification('Ошибка при сохранении задачи', 'error');
+            console.error('Error creating/updating task:', error);
+            showNotification('Ошибка при создании задачи', 'error');
         }
     });
 

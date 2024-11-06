@@ -27,7 +27,34 @@
         <main class="main-content">
             <header>
                 <h2>Мои задачи</h2>
-                <button id="addTaskBtn" class="btn-primary">Добавить задачу</button>
+                <div class="header-buttons">
+                    <button id="addTaskBtn" class="btn-primary">Добавить задачу</button>
+                    <div class="sort-dropdown">
+                        <button id="sortBtn" class="btn-primary">
+                            <i class="fas fa-sort"></i> Сортировка
+                        </button>
+                        <div class="sort-menu">
+                            <div class="sort-group">
+                                <span class="sort-label">По приоритету</span>
+                                <button class="sort-option" data-sort="priority" data-order="asc">
+                                    <i class="fas fa-sort-amount-down-alt"></i> По возрастанию
+                                </button>
+                                <button class="sort-option" data-sort="priority" data-order="desc">
+                                    <i class="fas fa-sort-amount-down"></i> По убыванию
+                                </button>
+                            </div>
+                            <div class="sort-group">
+                                <span class="sort-label">По сроку выполнения</span>
+                                <button class="sort-option" data-sort="due_date" data-order="asc">
+                                    <i class="fas fa-sort-amount-down-alt"></i> Сначала ближайшие
+                                </button>
+                                <button class="sort-option" data-sort="due_date" data-order="desc">
+                                    <i class="fas fa-sort-amount-down"></i> Сначала дальние
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </header>
 
             <div class="tasks-container">
@@ -47,16 +74,6 @@
                     <span class="error-message">Пожалуйста, введите название задачи (от 1 до 100 символов)</span>
                 </div>
                 <div class="form-group">
-                    <label for="taskDescription">Описание</label>
-                    <textarea id="taskDescription" name="description" maxlength="500"></textarea>
-                    <span class="error-message">Описание не может быть длиннее 500 символов</span>
-                </div>
-                <div class="form-group">
-                    <label for="taskDueDate">Дата выполнения</label>
-                    <input type="datetime-local" id="taskDueDate" name="due_date">
-                    <span class="error-message">Дата выполнения не может быть в прошлом</span>
-                </div>
-                <div class="form-group">
                     <label for="taskPriority">Приоритет</label>
                     <select id="taskPriority" name="priority" required>
                         <option value="1">Критический</option>
@@ -65,6 +82,16 @@
                         <option value="4">Низкий</option>
                     </select>
                     <span class="error-message">Пожалуйста, выберите приоритет задачи</span>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Описание</label>
+                    <textarea id="taskDescription" name="description" maxlength="500"></textarea>
+                    <span class="error-message">Описание не может быть длиннее 500 символов</span>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Дата выполнения</label>
+                    <input type="datetime-local" id="taskDueDate" name="due_date">
+                    <span class="error-message">Дата выполнения не может быть в прошлом</span>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-secondary" id="cancelTaskBtn">Отмена</button>

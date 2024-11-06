@@ -175,11 +175,36 @@ def delete_user(user_id: int, db: db_dependency):
 
 
 @app.post("/tasks/", response_model=schemas.TaskResponse)
-def create_task(task: schemas.TaskCreate, db: db_dependency, current_user: current_user_dependency):
+def create_task(
+    task: schemas.TaskCreate,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
     logger.info(f"Creating task: {task.title} for user: {current_user.email}")
-    new_task = crud.create_task(db=db, task=task, user_id=current_user.id, created_by_id=current_user.id)
-    logger.info(f"Task created: {new_task.title}")
-    return new_task
+    logger.debug(f"Task data received: {task.model_dump()}")
+
+    try:
+        new_task = models.Task(
+            title=task.title,
+            description=task.description,
+            priority=task.priority,
+            due_date=task.due_date,
+            user_id=current_user.id,
+            created_by_id=current_user.id
+        )
+        db.add(new_task)
+        db.commit()
+        db.refresh(new_task)
+
+        logger.info(f"Task created successfully: {new_task.title} with priority {new_task.priority}")
+        return new_task
+    except Exception as e:
+        logger.error(f"Error creating task: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @app.get("/tasks/", response_model=List[schemas.TaskResponse])

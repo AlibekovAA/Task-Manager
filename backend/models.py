@@ -46,7 +46,7 @@ class Task(Base):
     completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     due_date = Column(DateTime, nullable=True)
-    priority = Column(Integer, default=3, nullable=False)
+    priority = Column(Integer, default=3, server_default='3', nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
