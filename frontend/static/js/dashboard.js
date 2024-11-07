@@ -152,6 +152,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function renderTasks(tasks) {
+        tasksList.innerHTML = '';
+
+        if (!tasks || tasks.length === 0) {
+            tasksList.innerHTML = '<div class="no-tasks-message">Список задач пуст. Нажмите "Добавить задачу" чтобы создать новую задачу.</div>';
+            return;
+        }
+
         if (currentSort.field) {
             tasks.sort((a, b) => {
                 let comparison = 0;
