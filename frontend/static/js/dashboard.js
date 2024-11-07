@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const now = new Date();
 
             if (selectedDate < now) {
-                showNotification('Дата выполнения не может быть в прошлом', 'error');
+                showNotification('Дата выполнения не можт быть в прошлом', 'error');
                 return;
             }
         }
@@ -614,5 +614,160 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterMenu.classList.remove('active');
         }
     });
+
+    const exportBtn = document.getElementById('exportBtn');
+    const exportMenu = document.querySelector('.export-menu');
+
+    exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
+            exportMenu.classList.remove('active');
+        }
+    });
+
+    document.querySelectorAll('.export-option').forEach(option => {
+        option.addEventListener('click', async () => {
+            const type = option.dataset.type;
+
+            try {
+                const response = await fetch('/tasks/', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка получения задач');
+                }
+
+                const tasks = await response.json();
+
+                if (tasks.length === 0) {
+                    showNotification('Нет задач для экспорта', 'warning');
+                    return;
+                }
+
+                const tasksData = tasks.map(task => ({
+                    'Название': task.title,
+                    'Описание': task.description || '',
+                    'Приоритет': getPriorityLabel(task.priority),
+                    'Срок': task.due_date ? new Date(task.due_date).toLocaleString('ru-RU') : '',
+                    'Статус': task.completed ? 'Завершена' : 'В процессе'
+                }));
+
+                if (type === 'excel') {
+                    exportToExcel(tasksData);
+                } else if (type === 'pdf') {
+                    exportToPDF(tasksData);
+                }
+
+            } catch (error) {
+                console.error('Ошибка экспорта:', error);
+                showNotification('Ошибка при экспорте данных', 'error');
+            }
+
+            exportMenu.classList.remove('active');
+        });
+    });
+
+    function exportToExcel(data) {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Задачи");
+
+        const maxWidth = data.reduce((w, r) => Math.max(w, Object.values(r).join('').length), 10);
+        const colWidth = Math.min(maxWidth, 50);
+        worksheet['!cols'] = Object.keys(data[0]).map(() => ({ wch: colWidth }));
+
+        XLSX.writeFile(workbook, "tasks.xlsx");
+        showNotification('Задачи успешно экспортированы в Excel', 'success');
+    }
+
+    function exportToPDF(data) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        doc.addFont('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/DejaVuSans.ttf', 'DejaVuSans', 'normal');
+        doc.setFont('DejaVuSans');
+
+        const margin = 10;
+        let y = margin;
+
+        doc.setFontSize(16);
+        doc.text('Список задач', margin, y);
+        y += 15;
+
+        const headers = ['№', 'Название', 'Описание', 'Приоритет', 'Срок', 'Статус'];
+        const columnWidths = [10, 60, 80, 25, 40, 25];
+        const rowHeight = 12;
+
+        doc.setFontSize(10);
+        let x = margin;
+        headers.forEach((header, i) => {
+            doc.rect(x, y, columnWidths[i], rowHeight);
+            doc.text(header, x + 2, y + 7);
+            x += columnWidths[i];
+        });
+        y += rowHeight;
+
+        doc.setFontSize(9);
+        data.forEach((task, index) => {
+            const rowData = [
+                (index + 1).toString(),
+                task['Название'] || '',
+                task['Описание'] || '',
+                task['Приоритет'] || '',
+                task['Срок'] || '',
+                task['Статус'] || ''
+            ];
+
+            if (y > doc.internal.pageSize.height - margin - rowHeight) {
+                doc.addPage();
+                y = margin;
+
+                x = margin;
+                doc.setFontSize(10);
+                headers.forEach((header, i) => {
+                    doc.rect(x, y, columnWidths[i], rowHeight);
+                    doc.text(header, x + 2, y + 7);
+                    x += columnWidths[i];
+                });
+                y += rowHeight;
+                doc.setFontSize(9);
+            }
+
+            x = margin;
+            rowData.forEach((text, i) => {
+                doc.rect(x, y, columnWidths[i], rowHeight);
+
+                if (text) {
+                    const maxChars = Math.floor((columnWidths[i] - 4) * 2);
+                    const lines = doc.splitTextToSize(text, columnWidths[i] - 4);
+                    const displayText = lines[0].length > maxChars ?
+                        lines[0].substring(0, maxChars - 3) + '...' :
+                        lines[0];
+                    doc.text(displayText, x + 2, y + 7);
+                }
+                x += columnWidths[i];
+            });
+            y += rowHeight;
+        });
+
+        try {
+            doc.save('tasks.pdf');
+            showNotification('Задачи успешно экспортированы в PDF', 'success');
+        } catch (error) {
+            console.error('Ошибка при сохранении PDF:', error);
+            showNotification('Ошибка при экспорте в PDF', 'error');
+        }
+    }
 
 });
