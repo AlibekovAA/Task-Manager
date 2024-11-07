@@ -15,6 +15,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const adminMenuItem = document.getElementById('adminMenuItem');
+    const filterBtn = document.getElementById('filterBtn');
+    const filterMenu = document.querySelector('.filter-menu');
+    const filterTypes = document.querySelectorAll('.filter-type');
+    const filterOptions = document.querySelectorAll('.filter-options');
+    const exportBtn = document.getElementById('exportBtn');
+    const exportMenu = document.querySelector('.export-menu');
+
     let taskToDelete = null;
 
     const notification = document.getElementById('notification');
@@ -132,6 +139,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     sortBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         sortMenu.classList.toggle('active');
+        filterMenu.classList.remove('active');
+        exportMenu.classList.remove('active');
     });
 
     document.addEventListener('click', (e) => {
@@ -553,16 +562,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    const filterBtn = document.getElementById('filterBtn');
-    const filterMenu = document.querySelector('.filter-menu');
-    const filterTypes = document.querySelectorAll('.filter-type');
-    const filterOptions = document.querySelectorAll('.filter-options');
     let currentFilter = { type: null, value: null };
 
     filterBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         filterMenu.classList.toggle('active');
         sortMenu.classList.remove('active');
+        exportMenu.classList.remove('active');
     });
 
     filterTypes.forEach(type => {
@@ -622,12 +628,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    const exportBtn = document.getElementById('exportBtn');
-    const exportMenu = document.querySelector('.export-menu');
-
     exportBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         exportMenu.classList.toggle('active');
+        filterMenu.classList.remove('active');
+        sortMenu.classList.remove('active');
     });
 
     document.addEventListener('click', (e) => {
