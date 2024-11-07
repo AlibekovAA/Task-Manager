@@ -321,7 +321,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.showDeleteConfirmModal = showDeleteConfirmModal;
 
-    addTaskBtn.addEventListener('click', () => {
+    addTaskBtn.addEventListener('click', async () => {
+        document.querySelector('#taskModal h3').textContent = 'Новая задача';
+        taskForm.reset();
+
+        if (userRole === 'pm') {
+            assigneeGroup.style.display = 'block';
+            if (defaultUsers.length === 0) {
+                await loadDefaultUsers();
+            }
+        }
+
         taskModal.classList.add('active');
     });
 
@@ -348,6 +358,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 taskForm.title.value = task.title;
                 taskForm.description.value = task.description || '';
                 taskForm.priority.value = task.priority || 3;
+
+                if (userRole === 'pm' && taskAssignee) {
+                    taskAssignee.value = task.user_id || '';
+                }
+
                 if (task.due_date) {
                     const date = new Date(task.due_date);
                     const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -372,6 +387,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     taskForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        if (userRole === 'pm' && !taskAssignee.value) {
+            showNotification('Пожалуйста, выберите пользователя для назначения задачи', 'error');
+            return;
+        }
+
         const selectedPriority = parseInt(document.getElementById('taskPriority').value);
         const dueDate = document.getElementById('taskDueDate').value;
 
@@ -380,7 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const now = new Date();
 
             if (selectedDate < now) {
-                showNotification('Дата выполнения не можт быть в прошлом', 'error');
+                showNotification('Дата выполнения не может быть в прошлом', 'error');
                 return;
             }
         }
@@ -391,6 +411,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             description: document.getElementById('taskDescription').value,
             due_date: dueDate || null
         };
+
+        if (userRole === 'pm' && taskAssignee.value) {
+            formData.user_id = parseInt(taskAssignee.value);
+        }
 
         try {
             const url = editingTaskId ? `/tasks/${editingTaskId}` : '/tasks/';
@@ -433,7 +457,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    await loadUserProfile();
+    let userRole = null;
+    let defaultUsers = [];
+    const assigneeGroup = document.getElementById('assigneeGroup');
+    const taskAssignee = document.getElementById('taskAssignee');
+
+    async function checkUserRole() {
+        try {
+            const response = await fetch('/users/me/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                userRole = userData.role;
+                adminMenuItem.style.display = userData.role === 'admin' ? 'block' : 'none';
+
+                if (userRole === 'pm') {
+                    console.log('User is PM, showing assignee field');
+                    assigneeGroup.style.display = 'block';
+                    await loadDefaultUsers(userData.id);
+                }
+            } else if (response.status === 401) {
+                localStorage.removeItem('access_token');
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('Error checking user role:', error);
+        }
+    }
+
+    async function loadDefaultUsers(currentUserId) {
+        try {
+            const response = await fetch('/users/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const users = await response.json();
+                defaultUsers = users.filter(user => user.role === 'user' && user.is_active);
+
+                console.log('Loaded users:', defaultUsers);
+
+                const currentPM = users.find(user => user.id === currentUserId);
+                if (currentPM) {
+                    taskAssignee.innerHTML = `<option value="${currentPM.id}" selected>${currentPM.email} (Вы)</option>` +
+                        defaultUsers.map(user =>
+                            `<option value="${user.id}">${user.email}</option>`
+                        ).join('');
+                } else {
+                    taskAssignee.innerHTML = '<option value="">Выберите пользователя</option>' +
+                        defaultUsers.map(user =>
+                            `<option value="${user.id}">${user.email}</option>`
+                        ).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            showNotification('Ошибка при загрузке списка пользователей', 'error');
+        }
+    }
+
+    async function createTask(taskData) {
+        try {
+            const userId = userRole === 'pm' && taskAssignee.value ?
+                parseInt(taskAssignee.value) :
+                null;
+
+            const response = await fetch('/tasks/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...taskData,
+                    user_id: userId
+                })
+            });
+
+            if (response.ok) {
+                const newTask = await response.json();
+                showNotification('Задача успешно создана', 'success');
+                return newTask;
+            } else {
+                const error = await response.json();
+                throw new Error(error.detail || 'Ошибка при создании задачи');
+            }
+        } catch (error) {
+            console.error('Error creating task:', error);
+            showNotification(error.message || 'Ошибка при создании задачи', 'error');
+            throw error;
+        }
+    }
+
+    await checkUserRole();
     await loadTasks();
 
     logoutBtn.addEventListener('click', (e) => {
@@ -673,8 +795,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (type === 'excel') {
                     exportToExcel(tasksData);
-                } else if (type === 'pdf') {
-                    exportToPDF(tasksData);
                 }
 
             } catch (error) {
@@ -697,89 +817,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         XLSX.writeFile(workbook, "tasks.xlsx");
         showNotification('Задачи успешно экспортированы в Excel', 'success');
-    }
-
-    function exportToPDF(data) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        doc.addFont('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/DejaVuSans.ttf', 'DejaVuSans', 'normal');
-        doc.setFont('DejaVuSans');
-
-        const margin = 10;
-        let y = margin;
-
-        doc.setFontSize(16);
-        doc.text('Список задач', margin, y);
-        y += 15;
-
-        const headers = ['№', 'Название', 'Описание', 'Приоритет', 'Срок', 'Статус'];
-        const columnWidths = [10, 60, 80, 25, 40, 25];
-        const rowHeight = 12;
-
-        doc.setFontSize(10);
-        let x = margin;
-        headers.forEach((header, i) => {
-            doc.rect(x, y, columnWidths[i], rowHeight);
-            doc.text(header, x + 2, y + 7);
-            x += columnWidths[i];
-        });
-        y += rowHeight;
-
-        doc.setFontSize(9);
-        data.forEach((task, index) => {
-            const rowData = [
-                (index + 1).toString(),
-                task['Название'] || '',
-                task['Описание'] || '',
-                task['Приоритет'] || '',
-                task['Срок'] || '',
-                task['Статус'] || ''
-            ];
-
-            if (y > doc.internal.pageSize.height - margin - rowHeight) {
-                doc.addPage();
-                y = margin;
-
-                x = margin;
-                doc.setFontSize(10);
-                headers.forEach((header, i) => {
-                    doc.rect(x, y, columnWidths[i], rowHeight);
-                    doc.text(header, x + 2, y + 7);
-                    x += columnWidths[i];
-                });
-                y += rowHeight;
-                doc.setFontSize(9);
-            }
-
-            x = margin;
-            rowData.forEach((text, i) => {
-                doc.rect(x, y, columnWidths[i], rowHeight);
-
-                if (text) {
-                    const maxChars = Math.floor((columnWidths[i] - 4) * 2);
-                    const lines = doc.splitTextToSize(text, columnWidths[i] - 4);
-                    const displayText = lines[0].length > maxChars ?
-                        lines[0].substring(0, maxChars - 3) + '...' :
-                        lines[0];
-                    doc.text(displayText, x + 2, y + 7);
-                }
-                x += columnWidths[i];
-            });
-            y += rowHeight;
-        });
-
-        try {
-            doc.save('tasks.pdf');
-            showNotification('Задачи успешно экспортированы в PDF', 'success');
-        } catch (error) {
-            console.error('Ошибка при сохранении PDF:', error);
-            showNotification('Ошибка при экспорте в PDF', 'error');
-        }
     }
 
 });

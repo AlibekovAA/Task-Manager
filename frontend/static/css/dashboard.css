@@ -360,11 +360,11 @@ button:disabled {
 
 .modal-content {
     background: linear-gradient(135deg, rgba(147, 0, 255, 0.8), rgba(89, 0, 255, 0.8));
-    margin: 5% auto;
+    margin: 2% auto;
     padding: 2.5rem;
     border-radius: 12px;
-    max-width: 560px;
-    max-height: 560px;
+    max-width: 700px;
+    max-height: 150vh;
     width: 90%;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     display: flex;
@@ -374,20 +374,21 @@ button:disabled {
 }
 
 .modal-content h3 {
-    margin-top: 0;
     color: var(--text-primary);
     font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
 }
 
 .modal-content form {
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
+    max-width: 600px;
+    margin: 0;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     width: 100%;
 }
 
@@ -1027,23 +1028,6 @@ input:checked + .slider:before {
     right: 10px;
 }
 
-select#taskPriority {
-    width: 107%;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-select#taskPriority option {
-    padding: 8px;
-    background: #2c3e50;
-    color: var(--text-primary);
-}
-
 .task-header {
     display: flex;
     justify-content: space-between;
@@ -1512,4 +1496,36 @@ select#taskPriority option {
     transform: translate(-50%, -50%);
     font-size: 1.2rem;
     color: #fff;
+}
+
+select#taskPriority,
+select#taskAssignee {
+    width: 105%;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2rem;
+}
+
+select#taskPriority:focus,
+select#taskAssignee:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    outline: none;
+}
+
+select#taskPriority option,
+select#taskAssignee option {
+    background: #2c3e50;
+    color: var(--text-primary);
+    padding: 8px;
 }
