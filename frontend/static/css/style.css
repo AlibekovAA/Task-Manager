@@ -336,3 +336,43 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
         scale: 0.1;
     }
 }
+
+.password-field-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    width: auto;
+    max-width: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    background: none;
+    transform: translateY(-50%);
+    box-shadow: none;
+}
+
+.password-toggle i {
+    font-size: 16px;
+}
+
+.password-field-wrapper input[type="password"],
+.password-field-wrapper input[type="text"] {
+    padding-right: 40px;
+    background-color: white;
+    color: #333;
+}
