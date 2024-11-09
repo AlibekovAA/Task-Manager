@@ -24,6 +24,8 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
+    user_id: Optional[int] = None
+
     @field_validator('due_date')
     @classmethod
     def validate_due_date(cls, v: datetime | None) -> datetime | None:
@@ -74,6 +76,7 @@ class User(BaseModel):
     id: int
     created_at: datetime
     role: str
+    is_active: bool
     tasks: List[TaskResponse] = []
     created_tasks: List[TaskResponse] = []
 

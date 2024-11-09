@@ -325,11 +325,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('#taskModal h3').textContent = 'Новая задача';
         taskForm.reset();
 
+        assigneeGroup.style.display = userRole === 'pm' ? 'block' : 'none';
+
         if (userRole === 'pm') {
-            assigneeGroup.style.display = 'block';
-            if (defaultUsers.length === 0) {
-                await loadDefaultUsers();
+            try {
+                const response = await fetch('/users/me/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    await loadDefaultUsers(userData.id);
+                }
+            } catch (error) {
+                console.error('Error loading current user:', error);
+                showNotification('Ошибка при загрузке данных пользователя', 'error');
             }
+        }
+
+        if (taskDueDate) {
+            setDefaultDueDate();
         }
 
         taskModal.classList.add('active');
@@ -360,7 +377,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 taskForm.priority.value = task.priority || 3;
 
                 if (userRole === 'pm' && taskAssignee) {
-                    taskAssignee.value = task.user_id || '';
+                    const assigneeId = task.user_id || '';
+                    if (assigneeId) {
+                        taskAssignee.value = assigneeId;
+                    } else {
+                        const currentUserEmail = localStorage.getItem('user_email');
+                        const currentUserOption = Array.from(taskAssignee.options)
+                            .find(option => option.textContent.includes(currentUserEmail));
+                        if (currentUserOption) {
+                            taskAssignee.value = currentUserOption.value;
+                        }
+                    }
                 }
 
                 if (task.due_date) {
@@ -383,6 +410,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             showNotification('Ошибка при загрузке задачи', 'error');
         }
     };
+
+    async function createTask(taskData) {
+        try {
+            const userId = userRole === 'pm' ?
+                parseInt(taskAssignee.value):
+                null;
+            const response = await fetch('/tasks/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: taskData.title,
+                    description: taskData.description,
+                    priority: taskData.priority,
+                    due_date: taskData.due_date,
+                    user_id: userId
+                })
+            });
+
+            if (response.ok) {
+                const newTask = await response.json();
+                showNotification('Задача успешно создана', 'success');
+                return newTask;
+            } else {
+                const error = await response.json();
+                throw new Error(error.detail || 'Ошибка при создании задачи');
+            }
+        } catch (error) {
+            console.error('Error creating task:', error);
+            showNotification(error.message || 'Ошибка при создании задачи', 'error');
+            throw error;
+        }
+    }
 
     taskForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -412,48 +474,52 @@ document.addEventListener('DOMContentLoaded', async () => {
             due_date: dueDate || null
         };
 
-        if (userRole === 'pm' && taskAssignee.value) {
-            formData.user_id = parseInt(taskAssignee.value);
-        }
-
         try {
-            const url = editingTaskId ? `/tasks/${editingTaskId}` : '/tasks/';
-            const method = editingTaskId ? 'PUT' : 'POST';
+            if (editingTaskId) {
+                const url = `/tasks/${editingTaskId}`;
+                const method = 'PUT';
 
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
 
-            if (response.ok) {
-                const result = await response.json();
+                if (response.ok) {
+                    const result = await response.json();
 
-                if (result.priority !== selectedPriority) {
-                    console.error('Priority mismatch:', {
-                        sent: selectedPriority,
-                        received: result.priority
-                    });
+                    if (result.priority !== selectedPriority) {
+                        console.error('Priority mismatch:', {
+                            sent: selectedPriority,
+                            received: result.priority
+                        });
+                    }
+
+                    taskModal.classList.remove('active');
+                    taskForm.reset();
+                    await loadTasks();
+                    showNotification(
+                        editingTaskId ? 'Задача успешно обновлена!' : 'Задача успешно создана!',
+                        'success'
+                    );
+                    editingTaskId = null;
+                } else {
+                    const errorData = await response.json();
+                    showNotification(errorData.detail || 'Ошибка при сохранении задачи', 'error');
                 }
-
-                taskModal.classList.remove('active');
-                taskForm.reset();
-                await loadTasks();
-                showNotification(
-                    editingTaskId ? 'Задача успешно обновлена!' : 'Задача успешно создана!',
-                    'success'
-                );
-                editingTaskId = null;
             } else {
-                const errorData = await response.json();
-                showNotification(errorData.detail || 'Ошибка при сохранении задачи', 'error');
+                await createTask(formData);
+                await loadTasks();
             }
+
+            taskModal.classList.remove('active');
+            taskForm.reset();
+            editingTaskId = null;
         } catch (error) {
-            console.error('Error creating/updating task:', error);
-            showNotification('Ошибка при сохранении задачи', 'error');
+            console.error('Error:', error);
         }
     });
 
@@ -476,7 +542,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 adminMenuItem.style.display = userData.role === 'admin' ? 'block' : 'none';
 
                 if (userRole === 'pm') {
-                    console.log('User is PM, showing assignee field');
                     assigneeGroup.style.display = 'block';
                     await loadDefaultUsers(userData.id);
                 }
@@ -499,59 +564,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 const users = await response.json();
-                defaultUsers = users.filter(user => user.role === 'user' && user.is_active);
 
-                console.log('Loaded users:', defaultUsers);
+                defaultUsers = users.filter(user => {
+                    const matches = user.role === 'default' && user.is_active === true;
+                    return matches;
+                });
 
                 const currentPM = users.find(user => user.id === currentUserId);
+
                 if (currentPM) {
-                    taskAssignee.innerHTML = `<option value="${currentPM.id}" selected>${currentPM.email} (Вы)</option>` +
-                        defaultUsers.map(user =>
-                            `<option value="${user.id}">${user.email}</option>`
-                        ).join('');
+                    const optionsHtml = defaultUsers.map(user =>
+                        `<option value="${user.id}">${user.email}</option>`
+                    ).join('\n');
+
+                    taskAssignee.innerHTML = `<option value="${currentPM.id}" selected>${currentPM.email} (Вы)</option>\n${optionsHtml}`;
+
                 } else {
-                    taskAssignee.innerHTML = '<option value="">Выберите пользователя</option>' +
+                    taskAssignee.innerHTML = `<option value="">Выберите пользователя</option>\n${
                         defaultUsers.map(user =>
                             `<option value="${user.id}">${user.email}</option>`
-                        ).join('');
+                        ).join('\n')
+                    }`;
                 }
             }
         } catch (error) {
             console.error('Error loading users:', error);
             showNotification('Ошибка при загрузке списка пользователей', 'error');
-        }
-    }
-
-    async function createTask(taskData) {
-        try {
-            const userId = userRole === 'pm' && taskAssignee.value ?
-                parseInt(taskAssignee.value) :
-                null;
-
-            const response = await fetch('/tasks/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ...taskData,
-                    user_id: userId
-                })
-            });
-
-            if (response.ok) {
-                const newTask = await response.json();
-                showNotification('Задача успешно создана', 'success');
-                return newTask;
-            } else {
-                const error = await response.json();
-                throw new Error(error.detail || 'Ошибка при создании задачи');
-            }
-        } catch (error) {
-            console.error('Error creating task:', error);
-            showNotification(error.message || 'Ошибка при создании задачи', 'error');
-            throw error;
         }
     }
 

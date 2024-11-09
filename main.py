@@ -81,7 +81,9 @@ def read_users_me(current_user: current_user_dependency):
         "id": current_user.id,
         "created_at": current_user.created_at,
         "role": current_user.role,
-        "tasks": current_user.tasks
+        "is_active": current_user.is_active,
+        "tasks": current_user.tasks,
+        "created_tasks": current_user.created_tasks
     }
 
 
@@ -134,8 +136,13 @@ async def refresh_token(refresh_token: str = refresh_token_body):
     }
 
 
-@app.get("/users/", response_model=list[schemas.User])
-def read_users(db: db_dependency, skip: int = 0, limit: int = 10):
+@app.get("/users/", response_model=List[schemas.User])
+def read_users(
+    db: db_dependency,
+    current_user: current_user_dependency,
+    skip: int = 0,
+    limit: int = 10
+):
     logger.info(f"Reading users: skip={skip}, limit={limit}")
     users = crud.get_users(db, skip=skip, limit=limit)
     logger.info(f"Found {len(users)} users")
@@ -181,30 +188,25 @@ def create_task(
     current_user: current_user_dependency
 ):
     logger.info(f"Creating task: {task.title} for user: {current_user.email}")
-    logger.debug(f"Task data received: {task.model_dump()}")
 
-    try:
-        new_task = models.Task(
-            title=task.title,
-            description=task.description,
-            priority=task.priority,
-            due_date=task.due_date,
+    if current_user.role == 'pm' and task.user_id:
+        created_task = crud.create_task(
+            db=db,
+            task=task,
+            user_id=task.user_id,
+            created_by_id=current_user.id
+        )
+
+    else:
+        created_task = crud.create_task(
+            db=db,
+            task=task,
             user_id=current_user.id,
             created_by_id=current_user.id
         )
-        db.add(new_task)
-        db.commit()
-        db.refresh(new_task)
 
-        logger.info(f"Task created successfully: {new_task.title} with priority {new_task.priority}")
-        return new_task
-    except Exception as e:
-        logger.error(f"Error creating task: {e}")
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+    logger.info(f"Task created successfully: {task.title} with priority {task.priority}")
+    return created_task
 
 
 @app.get("/tasks/", response_model=List[schemas.TaskResponse])
