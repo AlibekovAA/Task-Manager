@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const taskElement = document.createElement('div');
             const isExpired = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
             taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
+            taskElement.setAttribute('data-task-id', task.id);
 
             let dueDate = '';
             let fuseHtml = '';
@@ -616,6 +617,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (response.ok) {
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                if (!currentStatus && taskElement) {
+                    createCompletionAnimation(taskElement);
+                }
+
                 await loadTasks();
                 showNotification(
                     currentStatus ? 'Задача отмечена как невыполненная' : 'Задача выполнена!',
