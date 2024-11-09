@@ -1,133 +1,103 @@
+from functools import wraps
+
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from . import models
-from . import schemas
+from . import models, schemas
 from .auth import get_password_hash
 from .logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
+def handle_db_operation(operation_name):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                result = func(*args, **kwargs)
+                if result is not None:
+                    logger.info(f"Successfully {operation_name}")
+                else:
+                    logger.warning(f"Failed to {operation_name} - not found")
+                return result
+            except Exception as e:
+                logger.error(f"Error during {operation_name}: {e}")
+                if 'db' in kwargs:
+                    kwargs['db'].rollback()
+                raise
+        return wrapper
+    return decorator
+
+
+@handle_db_operation("retrieve user")
 def get_user(db: Session, user_id: int):
-    logger.info(f"Attempting to retrieve user with id: {user_id}")
-    try:
-        user = db.query(models.User).filter(models.User.id == user_id).first()
-        if user:
-            logger.info(f"Successfully retrieved user with id: {user_id}")
-        else:
-            logger.warning(f"User not found with id: {user_id}")
-        return user
-    except Exception as e:
-        logger.error(f"Error retrieving user {user_id}: {e}")
-        raise
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
 
+@handle_db_operation("retrieve user by email")
 def get_user_by_email(db: Session, email: str):
-    logger.info(f"Attempting to retrieve user with email: {email}")
-    try:
-        user = db.query(models.User).filter(models.User.email == email).first()
-        if user:
-            logger.info(f"Successfully retrieved user with email: {email}")
-        else:
-            logger.warning(f"User not found with email: {email}")
-        return user
-    except Exception as e:
-        logger.error(f"Error retrieving user by email {email}: {e}")
-        raise
+    return db.query(models.User).filter(models.User.email == email).first()
 
 
+@handle_db_operation("retrieve users")
 def get_users(db: Session, skip: int = 0, limit: int = 10):
-    logger.info(f"Retrieving users with skip: {skip}, limit: {limit}")
     users = db.query(models.User).offset(skip).limit(limit).all()
-    logger.info(f"Retrieved {len(users)} users")
     return users
 
 
+@handle_db_operation("create user")
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
-    try:
-        hashed_password = get_password_hash(user.password)
-        hashed_secret_word = get_password_hash(user.secret_word)
-        db_user = models.User(
-            email=user.email,
-            password_hash=hashed_password,
-            secret_word=hashed_secret_word,
-        )
-        db.add(db_user)
+    db_user = models.User(
+        email=user.email,
+        password_hash=get_password_hash(user.password),
+        secret_word=get_password_hash(user.secret_word)
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+@handle_db_operation("delete user")
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    return db_user
+
+
+@handle_db_operation("update user")
+def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if db_user:
+        update_data = user_update.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            if key == "password":
+                db_user.password_hash = get_password_hash(value)
+            else:
+                setattr(db_user, key, value)
         db.commit()
         db.refresh(db_user)
-        logger.info(f"Successfully created new user with email: {user.email}")
-        return db_user
-    except Exception as e:
-        logger.error(f"Error creating user: {e}")
-        raise
+    return db_user
 
 
-def delete_user(db: Session, user_id: int):
-    logger.info(f"Attempting to delete user with ID: {user_id}")
-    try:
-        db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        if db_user:
-            logger.info(f"Deleting user with ID: {user_id}, email: {db_user.email}")
-            db.delete(db_user)
-            db.commit()
-            logger.info(f"Successfully deleted user with ID: {user_id}")
-            return db_user
-        logger.warning(f"Attempted to delete non-existent user with ID: {user_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error deleting user {user_id}: {e}")
-        db.rollback()
-        raise
-
-
-def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
-    try:
-        db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        if db_user:
-            update_data = user_update.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                if key == "password":
-                    db_user.password_hash = get_password_hash(value)
-                    logger.info(f"Password updated for user ID: {user_id}")
-                else:
-                    setattr(db_user, key, value)
-                    logger.info(f"Updated {key} for user ID: {user_id}")
-            db.commit()
-            db.refresh(db_user)
-            return db_user
-        logger.warning(f"Attempted to update non-existent user with ID: {user_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error updating user {user_id}: {e}")
-        db.rollback()
-        raise
-
-
+@handle_db_operation("retrieve task")
 def get_task(db: Session, task_id: int, user_id: int):
-    return db.query(models.Task).filter(
-        models.Task.id == task_id,
-        models.Task.user_id == user_id
-    ).first()
+    task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not (task and user):
+        return None
+
+    return task if (task.user_id == user_id or
+                   (user.role == 'pm' and task.created_by_id == user_id)) else None
 
 
-def get_assigned_tasks(db: Session, created_by_id: int, skip: int = 0, limit: int = 10, completed: bool | None = None):
-    query = db.query(models.Task).filter(models.Task.created_by_id == created_by_id)
-
-    if completed is not None:
-        query = query.filter(models.Task.completed == completed)
-
-    return query.order_by(desc(models.Task.created_at)).offset(skip).limit(limit).all()
-
-
-def get_user_tasks(
-    db: Session,
-    user_id: int,
-    skip: int = 0,
-    limit: int = 10,
-    completed: bool | None = None
-):
-    query = db.query(models.Task).filter(models.Task.user_id == user_id)
+def get_filtered_tasks(db: Session, filter_field: str, filter_value: int, skip: int = 0, limit: int = 10,
+                       completed: bool | None = None):
+    query = db.query(models.Task).filter(getattr(models.Task, filter_field) == filter_value)
 
     if completed is not None:
         query = query.filter(models.Task.completed == completed)
@@ -135,116 +105,82 @@ def get_user_tasks(
     return query.order_by(desc(models.Task.created_at)).offset(skip).limit(limit).all()
 
 
+def get_assigned_tasks(db: Session, created_by_id: int, **kwargs):
+    return get_filtered_tasks(db, 'created_by_id', created_by_id, **kwargs)
+
+
+def get_user_tasks(db: Session, user_id: int, **kwargs):
+    return get_filtered_tasks(db, 'user_id', user_id, **kwargs)
+
+
+@handle_db_operation("create task")
 def create_task(db: Session, task: schemas.TaskCreate, user_id: int, created_by_id: int):
-    try:
-        db_task = models.Task(
-            title=task.title,
-            description=task.description,
-            completed=task.completed,
-            due_date=task.due_date,
-            user_id=user_id,
-            created_by_id=created_by_id
-        )
-        db.add(db_task)
+    db_task = models.Task(
+        title=task.title,
+        description=task.description,
+        priority=task.priority,
+        due_date=task.due_date,
+        user_id=user_id,
+        created_by_id=created_by_id
+    )
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+
+@handle_db_operation("update task")
+def update_task(db: Session, task_id: int, user_id: int, task_update: dict):
+    db_task = get_task(db, task_id, user_id)
+    if db_task:
+        for key, value in task_update.items():
+            setattr(db_task, key, value)
         db.commit()
         db.refresh(db_task)
-        logger.info(f"Created new task '{task.title}' for user {user_id} by creator {created_by_id}")
-        return db_task
-    except Exception as e:
-        logger.error(f"Error creating task for user {user_id} by creator {created_by_id}: {e}")
-        db.rollback()
-        raise
+    return db_task
 
 
-def update_task(db: Session, task_id: int, user_id: int, task_update: schemas.TaskBase):
-    try:
-        db_task = get_task(db, task_id, user_id)
-        if db_task:
-            update_data = task_update.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(db_task, key, value)
-                logger.info(f"Updated {key} for task ID: {task_id}, user ID: {user_id}")
-            db.commit()
-            db.refresh(db_task)
-            return db_task
-        logger.warning(f"Attempted to update non-existent task ID: {task_id} for user {user_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error updating task {task_id} for user {user_id}: {e}")
-        db.rollback()
-        raise
-
-
+@handle_db_operation("reassign task")
 def reassign_task(db: Session, task_id: int, new_user_id: int, created_by_id: int):
-    try:
-        db_task = db.query(models.Task).filter(
-            models.Task.id == task_id,
-            models.Task.created_by_id == created_by_id
-        ).first()
+    db_task = db.query(models.Task).filter(
+        models.Task.id == task_id,
+        models.Task.created_by_id == created_by_id
+    ).first()
 
-        if db_task:
-            db_task.user_id = new_user_id
-            db.commit()
-            db.refresh(db_task)
-            logger.info(f"Reassigned task ID: {task_id} to new user ID: {new_user_id} by creator {created_by_id}")
-            return db_task
-        logger.warning(f"Task ID: {task_id} not found or not assigned by user {created_by_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error reassigning task {task_id} to user {new_user_id}: {e}")
-        db.rollback()
-        raise
+    if db_task:
+        db_task.user_id = new_user_id
+        db.commit()
+        db.refresh(db_task)
+    return db_task
 
 
 def delete_assigned_task(db: Session, task_id: int, created_by_id: int):
-    try:
-        db_task = db.query(models.Task).filter(
-            models.Task.id == task_id,
-            models.Task.created_by_id == created_by_id
-        ).first()
-
-        if db_task:
-            logger.info(f"Deleting assigned task ID: {task_id} created by user {created_by_id}")
-            db.delete(db_task)
-            db.commit()
-            return db_task
-        logger.warning(f"Attempted to delete non-existent or unauthorized task ID: {task_id} ",
-                       f"by creator {created_by_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error deleting assigned task {task_id} by creator {created_by_id}: {e}")
-        db.rollback()
-        raise
+    return delete_task_base(db, task_id, created_by_id, 'created_by_id')
 
 
 def delete_task(db: Session, task_id: int, user_id: int):
-    try:
-        db_task = get_task(db, task_id, user_id)
-        if db_task:
-            logger.info(f"Deleting task ID: {task_id} for user {user_id}")
-            db.delete(db_task)
-            db.commit()
-            return db_task
-        logger.warning(f"Attempted to delete non-existent task ID: {task_id} for user {user_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error deleting task {task_id} for user {user_id}: {e}")
-        db.rollback()
-        raise
+    task = get_task(db, task_id, user_id)
+    return delete_task_base(db, task_id, user_id, 'user_id') if task else None
 
 
+@handle_db_operation("delete task")
+def delete_task_base(db: Session, task_id: int, user_id: int, id_field: str):
+    db_task = db.query(models.Task).filter(
+        models.Task.id == task_id,
+        getattr(models.Task, id_field) == user_id
+    ).first()
+
+    if db_task:
+        db.delete(db_task)
+        db.commit()
+    return db_task
+
+
+@handle_db_operation("update user role")
 def update_user_role(db: Session, user_id: int, new_role: str):
-    try:
-        db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        if db_user:
-            db_user.role = new_role
-            db.commit()
-            db.refresh(db_user)
-            logger.info(f"Updated role to {new_role} for user ID: {user_id}")
-            return db_user
-        logger.warning(f"Attempted to update role for non-existent user with ID: {user_id}")
-        return None
-    except Exception as e:
-        logger.error(f"Error updating role for user {user_id}: {e}")
-        db.rollback()
-        raise
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if db_user:
+        db_user.role = new_role
+        db.commit()
+        db.refresh(db_user)
+    return db_user

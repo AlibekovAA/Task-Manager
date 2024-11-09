@@ -61,22 +61,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadTasks() {
         try {
-            const response = await fetch('/tasks/', {
+            const userResponse = await fetch('/users/me/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            if (response.ok) {
-                const tasks = await response.json();
-                renderTasks(tasks);
-                checkDeadlines(tasks);
-            } else if (response.status === 401) {
+            if (!userResponse.ok) {
+                throw new Error('Failed to fetch user data');
+            }
+
+            const userData = await userResponse.json();
+            let tasks = [];
+
+            if (userData.role === 'pm') {
+                const assignedResponse = await fetch('/assigned-tasks/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (assignedResponse.ok) {
+                    const assignedTasks = await assignedResponse.json();
+                    tasks = assignedTasks;
+                }
+            } else {
+                const response = await fetch('/tasks/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    tasks = await response.json();
+                }
+            }
+
+            renderTasks(tasks);
+            checkDeadlines(tasks);
+
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+            if (error.status === 401) {
                 localStorage.removeItem('access_token');
                 window.location.href = '/';
             }
-        } catch (error) {
-            console.error('Error loading tasks:', error);
         }
     }
 

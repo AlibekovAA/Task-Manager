@@ -18,9 +18,13 @@ class TaskBase(BaseModel):
     @field_validator('priority')
     @classmethod
     def validate_priority(cls, v: int) -> int:
-        if v < 1 or v > 4:
+        if not 1 <= v <= 4:
             raise ValueError('Приоритет должен быть от 1 до 4')
         return v
+
+
+class UserBase(BaseModel):
+    email: EmailStr
 
 
 class TaskCreate(TaskBase):
@@ -29,11 +33,16 @@ class TaskCreate(TaskBase):
     @field_validator('due_date')
     @classmethod
     def validate_due_date(cls, v: datetime | None) -> datetime | None:
-        if v is not None and v < datetime.now():
+        if v and v < datetime.now():
             logger.warning(f"Invalid due date: {v} is in the past")
             raise ValueError('Дата и время выполнения не могут быть в прошлом')
         logger.debug(f"Due date validation successful: {v}")
         return v
+
+
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=6, max_length=100)
+    secret_word: str = Field(..., min_length=3, max_length=50)
 
 
 class TaskUpdate(TaskBase):
@@ -43,8 +52,28 @@ class TaskUpdate(TaskBase):
     due_date: Optional[datetime] = None
 
 
+class UserUpdate(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+
 class TaskStatusUpdate(BaseModel):
     completed: bool
+
+
+class UserBlockUpdate(BaseModel):
+    is_active: bool
+
+
+class UserRoleUpdate(BaseModel):
+    role: str
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        if value not in {'user', 'admin', 'pm'}:
+            raise ValueError('Role must be either user, admin or pm')
+        return value
 
 
 class TaskResponse(TaskBase):
@@ -57,31 +86,19 @@ class TaskResponse(TaskBase):
         from_attributes = True
 
 
-class UserBase(BaseModel):
-    email: EmailStr
-
-
-class UserCreate(UserBase):
-    password: str = Field(..., min_length=6, max_length=100)
-    secret_word: str = Field(..., min_length=3, max_length=50)
-
-
-class UserUpdate(BaseModel):
-    email: Optional[str] = None
-    password: Optional[str] = None
-
-
-class User(BaseModel):
-    email: str
+class UserResponse(UserBase):
     id: int
     created_at: datetime
     role: str
     is_active: bool
-    tasks: List[TaskResponse] = []
-    created_tasks: List[TaskResponse] = []
 
     class Config:
         from_attributes = True
+
+
+class User(UserResponse):
+    tasks: List[TaskResponse] = []
+    created_tasks: List[TaskResponse] = []
 
 
 class Token(BaseModel):
@@ -94,38 +111,10 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 
-class UserBlockUpdate(BaseModel):
-    is_active: bool
-
-
-class UserResponse(UserBase):
-    id: int
-    email: str
-    created_at: datetime
-    role: str
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-
-
-class UserRoleUpdate(BaseModel):
-    role: str
-
-    @field_validator('role')
-    @classmethod
-    def validate_role(cls, value: str) -> str:
-        if value not in ['user', 'admin', 'pm']:
-            raise ValueError('Role must be either user, admin or pm')
-        return value
-
-
 class PasswordResetRequest(BaseModel):
     email: EmailStr
     secret_word: str
 
 
-class PasswordReset(BaseModel):
-    email: EmailStr
-    secret_word: str
+class PasswordReset(PasswordResetRequest):
     new_password: str = Field(..., min_length=6, max_length=100)

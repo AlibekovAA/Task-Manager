@@ -46,7 +46,7 @@ class Task(Base):
     completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     due_date = Column(DateTime, nullable=True)
-    priority = Column(Integer, default=3, server_default='3', nullable=False)
+    priority = Column(Integer, default=3, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -57,8 +57,9 @@ class Task(Base):
     @classmethod
     def create_task(cls, **kwargs) -> "Task":
         try:
+            logger.info(f"Creating task with kwargs: {kwargs}")
             task = cls(**kwargs)
-            logger.info(f"Task created: {task.title} for user {task.user_id}")
+            logger.info(f"Task created with priority {task.priority} (type: {type(task.priority)})")
             return task
         except Exception as e:
             logger.error(f"Error creating task: {e}")

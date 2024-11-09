@@ -51,6 +51,8 @@
 ![Profile](example/profile.jpg)
 ![Admin](example/admin.jpg)
 ![info](example/info.jpg)
+![register](example/register.jpg)
+![completed](example/complete_task.jpg)
 
 ---
 ⭐️ Star на GitHub — это помогает!

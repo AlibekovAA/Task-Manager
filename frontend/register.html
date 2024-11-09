@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Страница регистрации пользователя">
     <title>Регистрация</title>
+    <link rel="preload" href="static/css/style.css" as="style">
+    <link rel="preload" href="static/js/register.js" as="script">
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+          media="print" onload="this.media='all'">
 </head>
 <body>
     <div class="institute-logo">
-        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti">
+        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti"
+             loading="lazy" width="150" height="auto">
     </div>
-    <div class="auth-container">
+
+    <main class="auth-container">
         <div class="auth-form">
-            <h2>Регистрация</h2>
-            <form id="registerForm" autocomplete="on">
+            <h1>Регистрация</h1>
+            <form id="registerForm" autocomplete="on" novalidate>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email"
@@ -22,21 +29,19 @@
                            name="email"
                            required
                            autocomplete="email"
-                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                           oninput="this.setCustomValidity('')"
-                           oninvalid="this.setCustomValidity('Введите корректный email адрес')">
+                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
                 </div>
+
                 <div class="form-group">
                     <label for="password">Пароль</label>
                     <input type="password"
                            id="password"
                            name="password"
-                           minlength="6"
                            required
-                           autocomplete="new-password"
-                           oninput="this.setCustomValidity('')"
-                           oninvalid="this.setCustomValidity('Пароль должен содержать не менее 6 символов')">
+                           minlength="6"
+                           autocomplete="new-password">
                 </div>
+
                 <div class="form-group">
                     <label for="confirmPassword">Подтвердите пароль</label>
                     <input type="password"
@@ -45,6 +50,7 @@
                            required
                            autocomplete="new-password">
                 </div>
+
                 <div class="form-group">
                     <label for="secretWord">Кодовое слово</label>
                     <input type="password"
@@ -55,20 +61,22 @@
                            maxlength="50"
                            autocomplete="off">
                 </div>
+
                 <div class="error-message" id="errorMessage" aria-live="assertive" role="alert"></div>
                 <button type="submit">Зарегистрироваться</button>
             </form>
+
             <div class="auth-links">
                 <a href="/" class="login-link">Уже есть аккаунт? Войти</a>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="info-button" id="infoButton">i</div>
-    <div class="author-modal" id="authorModal"></div>
+    <div class="info-button" id="infoButton" role="button" aria-label="Информация">i</div>
+    <div class="author-modal" id="authorModal" role="dialog" aria-modal="true"></div>
 
-    <script src="static/js/register.js"></script>
-    <script src="static/js/common.js"></script>
-    <script src="static/js/logo-animation.js"></script>
+    <script src="static/js/register.js" defer></script>
+    <script src="static/js/common.js" defer></script>
+    <script src="static/js/logo-animation.js" defer></script>
 </body>
 </html>

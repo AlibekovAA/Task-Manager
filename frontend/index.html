@@ -3,29 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Страница авторизации пользователя">
     <title>Авторизация</title>
+    <link rel="preload" href="static/css/style.css" as="style">
+    <link rel="preload" href="static/js/main.js" as="script">
     <link rel="stylesheet" href="static/css/style.css">
     <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+          media="print" onload="this.media='all'">
 </head>
 <body>
     <div class="institute-logo">
-        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti">
+        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti"
+             loading="lazy" width="150" height="auto">
     </div>
-    <div class="auth-container">
+
+    <main class="auth-container">
         <div class="auth-form">
             <div id="loginSection">
-                <h2>Авторизация</h2>
-                <form id="loginForm">
+                <h1>Авторизация</h1>
+                <form id="loginForm" novalidate>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               autocomplete="username"
+                               required
+                               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
                     </div>
                     <div class="form-group">
                         <label for="password">Пароль</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               autocomplete="current-password"
+                               required
+                               minlength="6">
                     </div>
-                    <div class="error-message" id="errorMessage"></div>
+                    <div class="error-message" id="errorMessage" aria-live="assertive" role="alert"></div>
                     <button type="submit">Войти</button>
                 </form>
                 <div class="auth-links">
@@ -34,38 +50,59 @@
                 </div>
             </div>
 
-            <div id="resetSection" style="display: none;">
+            <div id="resetSection" style="display: none;" role="dialog" aria-modal="true">
                 <div class="reset-header">
                     <h2>Восстановление пароля</h2>
                 </div>
                 <div class="reset-password-step" id="stepOne">
-                    <form id="resetPasswordForm">
+                    <form id="resetPasswordForm" novalidate>
                         <div class="form-group">
                             <label for="resetEmail">Email</label>
-                            <input type="email" id="resetEmail" name="resetEmail" required>
+                            <input type="email"
+                                   id="resetEmail"
+                                   name="resetEmail"
+                                   autocomplete="username"
+                                   required
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
                         </div>
                         <div class="form-group">
                             <label for="secretWord">Кодовое слово</label>
-                            <input type="password" id="secretWord" name="secretWord" required>
+                            <input type="password"
+                                   id="secretWord"
+                                   name="secretWord"
+                                   autocomplete="off"
+                                   required
+                                   minlength="3"
+                                   maxlength="50">
                         </div>
-                        <div class="error-message" id="resetErrorMessage"></div>
+                        <div class="error-message" id="resetErrorMessage" aria-live="assertive" role="alert"></div>
                         <div class="modal-buttons">
                             <button type="button" class="back-button" id="backToLogin">&larr; Назад</button>
                             <button type="submit" class="btn-primary">Далее &rarr;</button>
                         </div>
                     </form>
                 </div>
+
                 <div class="reset-password-step" id="stepTwo" style="display: none;">
-                    <form id="newPasswordForm">
+                    <form id="newPasswordForm" novalidate>
                         <div class="form-group">
                             <label for="newPassword">Новый пароль</label>
-                            <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                            <input type="password"
+                                   id="newPassword"
+                                   name="newPassword"
+                                   autocomplete="new-password"
+                                   required
+                                   minlength="6">
                         </div>
                         <div class="form-group">
                             <label for="confirmNewPassword">Подтвердите новый пароль</label>
-                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                            <input type="password"
+                                   id="confirmNewPassword"
+                                   name="confirmNewPassword"
+                                   autocomplete="new-password"
+                                   required>
                         </div>
-                        <div class="error-message" id="newPasswordErrorMessage"></div>
+                        <div class="error-message" id="newPasswordErrorMessage" aria-live="assertive" role="alert"></div>
                         <div class="modal-buttons">
                             <button type="button" class="back-button" id="backToStepOne">&larr; Назад</button>
                             <button type="submit" class="btn-primary">Сохранить</button>
@@ -74,13 +111,13 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="info-button" id="infoButton">i</div>
-    <div class="author-modal" id="authorModal"></div>
+    <div class="info-button" id="infoButton" role="button" aria-label="Информация">i</div>
+    <div class="author-modal" id="authorModal" role="dialog" aria-modal="true"></div>
 
-    <script src="static/js/main.js"></script>
-    <script src="static/js/common.js"></script>
-    <script src="static/js/logo-animation.js"></script>
+    <script src="static/js/main.js" defer></script>
+    <script src="static/js/common.js" defer></script>
+    <script src="static/js/logo-animation.js" defer></script>
 </body>
 </html>

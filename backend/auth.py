@@ -10,44 +10,46 @@ from .config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from .logger import setup_logger
 
 logger = setup_logger(__name__)
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password: str, hashed_password: str):
-    logger.info("Attempting to verify password")
+def _handle_password_operation(operation: str, *args, log_msg: str):
+    logger.info(f"Attempting to {operation} password")
     try:
-        result = pwd_context.verify(plain_password, hashed_password)
-        logger.info(f"Password verification result: {'success' if result else 'failure'}")
+        result = getattr(pwd_context, operation)(*args)
+        logger.info(log_msg)
         return result
     except Exception as e:
-        logger.error(f"Error verifying password: {e}")
-        return False
+        logger.error(f"Error {operation} password: {e}")
+        return False if operation == "verify" else None
 
 
-def get_password_hash(password: str):
-    logger.info("Attempting to hash password")
-    try:
-        hashed = pwd_context.hash(password)
-        logger.info("Password hashed successfully")
-        return hashed
-    except Exception as e:
-        logger.error(f"Error hashing password: {e}")
-        raise
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return _handle_password_operation(
+        "verify",
+        plain_password,
+        hashed_password,
+        log_msg="Password verification completed"
+    )
+
+
+def get_password_hash(password: str) -> str:
+    result = _handle_password_operation(
+        "hash",
+        password,
+        log_msg="Password hashed successfully"
+    )
+    if result is None:
+        raise ValueError("Failed to hash password")
+    return result
 
 
 def authenticate_user(db: Session, email: str, password: str):
     logger.info(f"Attempting to authenticate user: {email}")
     try:
         user = crud.get_user_by_email(db, email)
-        if not user:
-            logger.warning(f"Authentication failed: user not found for email {email}")
-            return False
-        if not user.is_active:
-            logger.warning(f"Authentication failed: user {email} is blocked")
-            return False
-        if not verify_password(password, user.password_hash):
-            logger.warning(f"Authentication failed: invalid password for user {email}")
+        if not user or not user.is_active or not verify_password(password, user.password_hash):
+            logger.warning(f"Authentication failed for user {email}")
             return False
         logger.info(f"User {email} authenticated successfully")
         return user
@@ -56,20 +58,28 @@ def authenticate_user(db: Session, email: str, password: str):
         return False
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def _create_token(data: dict, expires_delta: Optional[timedelta], token_type: str = "access"):
     try:
         to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.now() + expires_delta
-        else:
-            expire = datetime.now() + timedelta(minutes=15)
+        expire = datetime.now() + (expires_delta or timedelta(minutes=15))
         to_encode.update({"exp": expire})
+        if token_type == "refresh":
+            to_encode.update({"type": "refresh"})
+
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-        logger.info(f"Access token created for user: {data.get('sub')}")
+        logger.info(f"{token_type.title()} token created for user: {data.get('sub')}")
         return encoded_jwt
     except Exception as e:
-        logger.error(f"Error creating access token: {e}")
+        logger.error(f"Error creating {token_type} token: {e}")
         raise
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    return _create_token(data, expires_delta)
+
+
+def create_refresh_token(data: dict):
+    return _create_token(data, timedelta(days=30), "refresh")
 
 
 def decode_access_token(token: str):
@@ -77,48 +87,25 @@ def decode_access_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         logger.debug(f"Token decoded successfully for user: {payload.get('sub')}")
         return payload
-    except JWTError as e:
-        logger.warning(f"Invalid token: {e}")
+    except (JWTError, Exception) as e:
+        logger.warning(f"Token decoding failed: {e}")
         return None
-    except Exception as e:
-        logger.error(f"Error decoding token: {e}")
-        return None
-
-
-def create_refresh_token(data: dict):
-    try:
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(days=30)
-        to_encode.update({"exp": expire, "type": "refresh"})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-        logger.info(f"Refresh token created for user: {data.get('sub')}")
-        return encoded_jwt
-    except Exception as e:
-        logger.error(f"Error creating refresh token: {e}")
-        raise
 
 
 def refresh_access_token(refresh_token: str):
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-        if payload.get("type") != "refresh":
-            logger.warning("Invalid token type for refresh")
+        if payload.get("type") != "refresh" or not (email := payload.get("sub")):
+            logger.warning("Invalid refresh token")
             return None
 
-        email: str = payload.get("sub")
-        if email is None:
-            logger.warning("No email in refresh token")
-            return None
-
-        access_token = create_access_token(
+        return create_access_token(
             data={"sub": email},
             expires_delta=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
         )
-        return access_token
     except JWTError as e:
         logger.warning(f"Invalid refresh token: {e}")
         return None
 
 
-def verify_secret_word(plain_secret_word: str, hashed_secret_word: str) -> bool:
-    return pwd_context.verify(plain_secret_word, hashed_secret_word)
+verify_secret_word = verify_password

@@ -17,13 +17,17 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Roboto', sans-serif;
-    background: linear-gradient(45deg, rgba(147, 0, 255, 0.9), rgba(89, 0, 255, 0.9)),
+    background: var(--theme-gradient, linear-gradient(45deg, rgba(147, 0, 255, 0.9), rgba(89, 0, 255, 0.9))),
                 url('/static/images/auth-bg.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     color: var(--text-primary);
+}
+
+[data-theme="light"] body {
+    --theme-gradient: linear-gradient(45deg, rgba(255, 255, 255, 0.9), rgba(240, 240, 240, 0.9));
 }
 
 .dashboard {

@@ -157,6 +157,7 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     display: flex;
     justify-content: center;
     gap: 20px;
+    text-decoration: none;
 }
 
 .social-link {
@@ -170,11 +171,12 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none;
 }
 
 .social-link:hover {
     transform: scale(1.1);
-    background-color: rgba(255, 255, 255, 0.3);
+    text-decoration: none;
 }
 
 .error-message {
@@ -316,8 +318,8 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     box-shadow:
         0 0 10px #fff,
         0 0 20px #fff,
-        0 0 30px #ff00ff,
-        0 0 40px #ff00ff;
+        0 0 30px var(--primary-color),
+        0 0 40px var(--primary-color);
 }
 
 @keyframes explode {

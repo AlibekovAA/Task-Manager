@@ -15,43 +15,58 @@ function createCompletionAnimation(taskElement) {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const particleCount = 100;
+    const particleCount = 150;
     const particles = [];
+
     const colors = [
         '#FFD700',
-        '#FFA500',
-        '#FF69B4',
+        '#FF1493',
         '#00FF00',
-        '#87CEEB',
+        '#FF4500',
+        '#1E90FF',
+        '#FF00FF',
+        '#00FFFF',
+        '#FFFFFF'
     ];
 
     for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'completion-confetti';
+
+        const isGlitter = Math.random() < 0.3;
+        const isCircle = Math.random() < 0.5;
+
+        const size = isGlitter ? Math.random() * 3 + 2 : Math.random() * 8 + 4;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
         particle.style.cssText = `
             position: absolute;
-            width: ${Math.random() * 8 + 4}px;
-            height: ${Math.random() * 8 + 4}px;
-            background-color: ${colors[Math.floor(Math.random() * colors.length)]};
+            width: ${size}px;
+            height: ${isGlitter ? size : size * (Math.random() * 0.5 + 0.5)}px;
+            background-color: ${color};
             transform: rotate(${Math.random() * 360}deg);
-            border-radius: 2px;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            border-radius: ${isCircle ? '50%' : '2px'};
+            box-shadow: 0 0 ${isGlitter ? '10px' : '5px'} ${color};
+            filter: brightness(${Math.random() * 0.5 + 1});
         `;
 
         const angle = (Math.PI * 2 * i) / particleCount;
-        const velocity = 8 + Math.random() * 8;
+        const velocity = 8 + Math.random() * 12;
+        const spread = 1.2;
 
         particles.push({
             element: particle,
             x: centerX,
             y: centerY,
-            vx: Math.cos(angle) * velocity * (0.5 + Math.random()),
-            vy: Math.sin(angle) * velocity * (0.5 + Math.random()),
+            vx: Math.cos(angle) * velocity * spread * (0.5 + Math.random()),
+            vy: Math.sin(angle) * velocity * spread * (0.5 + Math.random()),
             rotation: Math.random() * 360,
-            rotationSpeed: (Math.random() - 0.5) * 10,
-            gravity: 0.2,
+            rotationSpeed: (Math.random() - 0.5) * 15,
+            gravity: 0.2 + Math.random() * 0.1,
             friction: 0.99,
-            opacity: 1
+            opacity: 1,
+            scale: 1,
+            isGlitter
         });
 
         particleContainer.appendChild(particle);
@@ -73,16 +88,25 @@ function createCompletionAnimation(taskElement) {
             particle.vx *= particle.friction;
             particle.vy *= particle.friction;
             particle.rotation += particle.rotationSpeed;
-            particle.opacity -= 0.01;
+
+            if (particle.isGlitter) {
+                particle.scale = 1 + Math.sin(frame * 0.2) * 0.2;
+            }
+
+            particle.opacity -= 0.008;
 
             if (particle.opacity > 0) {
                 allParticlesDead = false;
-                particle.element.style.transform = `translate(${particle.x}px, ${particle.y}px) rotate(${particle.rotation}deg)`;
+                particle.element.style.transform = `
+                    translate(${particle.x}px, ${particle.y}px)
+                    rotate(${particle.rotation}deg)
+                    scale(${particle.scale})
+                `;
                 particle.element.style.opacity = particle.opacity;
             }
         });
 
-        if (allParticlesDead || frame > 200) {
+        if (allParticlesDead || frame > 250) {
             particleContainer.remove();
         } else {
             requestAnimationFrame(animate);
