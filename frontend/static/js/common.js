@@ -3,12 +3,39 @@ async function loadAuthorInfo() {
         const response = await fetch('/static/templates/author-info.html');
         const html = await response.text();
         const authorModal = document.getElementById('authorModal');
+        if (!authorModal) {
+            console.error('Элемент authorModal не найден');
+            return false;
+        }
         authorModal.innerHTML = html;
         return true;
     } catch (error) {
         console.error('Ошибка при загрузке информации об авторе:', error);
         return false;
     }
+}
+
+function showModal(modal) {
+    if (!modal) {
+        console.error('Модальное окно не найдено');
+        return;
+    }
+    modal.style.display = 'block';
+    void modal.offsetWidth;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideModal(modal) {
+    if (!modal) {
+        console.error('Модальное окно не найдено');
+        return;
+    }
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
 }
 
 async function initializeInfoButton() {
@@ -21,53 +48,40 @@ async function initializeInfoButton() {
     }
 
     const loaded = await loadAuthorInfo();
-    if (!loaded) return;
+    if (!loaded) {
+        console.error('Не удалось загрузить информацию об авторе');
+        return;
+    }
 
     const closeModal = document.getElementById('closeModal');
+    if (!closeModal) {
+        console.error('Не удалось найти кнопку закрытия модального окна.');
+        return;
+    }
 
-    infoButton.addEventListener('click', () => showModal(authorModal));
-    closeModal.addEventListener('click', () => hideModal(authorModal));
-    window.addEventListener('click', (event) => {
+    infoButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showModal(authorModal);
+    });
+
+    closeModal.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        hideModal(authorModal);
+    });
+
+    authorModal.addEventListener('click', (event) => {
         if (event.target === authorModal) {
             hideModal(authorModal);
         }
     });
 }
 
-function showModal(modal) {
-    modal.style.display = 'block';
-}
-
-function hideModal(modal) {
-    modal.style.display = 'none';
-}
-
-function initializePasswordToggles() {
-    const passwordFields = document.querySelectorAll('input[type="password"]');
-
-    passwordFields.forEach(field => {
-        const toggleButton = document.createElement('button');
-        toggleButton.type = 'button';
-        toggleButton.className = 'password-toggle';
-        toggleButton.innerHTML = '<i class="fas fa-eye"></i>';
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'password-field-wrapper';
-        field.parentNode.insertBefore(wrapper, field);
-        wrapper.appendChild(field);
-        wrapper.appendChild(toggleButton);
-
-        toggleButton.addEventListener('click', () => {
-            const type = field.type === 'password' ? 'text' : 'password';
-            field.type = type;
-            toggleButton.innerHTML = type === 'password' ?
-                '<i class="fas fa-eye"></i>' :
-                '<i class="fas fa-eye-slash"></i>';
-        });
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeInfoButton();
     });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
+} else {
     initializeInfoButton();
-    initializePasswordToggles();
-});
+}

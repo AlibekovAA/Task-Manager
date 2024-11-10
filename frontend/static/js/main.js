@@ -16,6 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = formData.get('email');
         const password = formData.get('password');
 
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            errorMessage.textContent = 'Пожалуйста, введите корректный email адрес';
+            return;
+        }
+
+        if (password.length < 6) {
+            errorMessage.textContent = 'Пароль должен содержать минимум 6 символов';
+            return;
+        }
+
         try {
             const response = await fetch('/token', {
                 method: 'POST',
