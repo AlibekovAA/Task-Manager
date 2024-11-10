@@ -14,6 +14,8 @@
 - [Технологии](#технологии)
 - [Автор](#автор)
 - [Примеры](#примеры)
+- [Запуск тестов](#запуск-тестов)
+- [Запуск сервера](#запуск-сервера)
 
 ## ✨ Особенности
 
@@ -53,6 +55,17 @@
 ![info](example/info.jpg)
 ![register](example/register.jpg)
 ![completed](example/complete_task.jpg)
+
+
+## Запуск тестов
+- Базовый отчет в консоли:
+  - pytest --cov=backend tests/
+- Более детальный HTML-отчет:
+  - pytest --cov=backend --cov-report=html tests/
+  - Откройте htmlcov/index.html в браузере для просмотра детального отчета.
+
+## Запуск сервера
+- uvicorn app.main:app --reload
 
 ---
 ⭐️ Star на GitHub — это помогает!
