@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
+from enum import IntEnum
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -8,18 +9,24 @@ from .logger import setup_logger
 logger = setup_logger(__name__)
 
 
+class TaskStatus(IntEnum):
+    PROPOSED = 0
+    IN_PROGRESS = 1
+    COMPLETE = 2
+
+
 class TaskBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=1000)
-    completed: bool = False
+    status: int = Field(default=TaskStatus.PROPOSED)
     due_date: Optional[datetime] = None
     priority: int = Field(default=3, ge=1, le=4)
 
-    @field_validator('priority')
+    @field_validator('status')
     @classmethod
-    def validate_priority(cls, v: int) -> int:
-        if not 1 <= v <= 4:
-            raise ValueError('Приоритет должен быть от 1 до 4')
+    def validate_status(cls, v: int) -> int:
+        if v not in [status.value for status in TaskStatus]:
+            raise ValueError('Статус должен быть 0 (Proposed), 1 (In Progress) или 2 (Complete)')
         return v
 
 

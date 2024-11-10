@@ -216,14 +216,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         tasksList.innerHTML = '';
         tasks.forEach(task => {
             const taskElement = document.createElement('div');
-            const isExpired = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
-            taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
+            const isExpired = task.due_date && new Date(task.due_date) < new Date() && task.status !== 2;
+            taskElement.className = `task-item ${task.status === 2 ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
             taskElement.setAttribute('data-task-id', task.id);
 
             let dueDate = '';
             let fuseHtml = '';
 
-            if (task.due_date && !task.completed) {
+            if (task.due_date && task.status !== 2) {
                 try {
                     const date = new Date(task.due_date);
                     dueDate = date.toLocaleString('ru-RU', {
@@ -234,17 +234,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                         minute: '2-digit'
                     });
 
-                    const progress = calculateFuseProgress(task.due_date, task.created_at);
-                    const fuseClass = getFuseClass(progress);
-                    const timeLeft = new Date(task.due_date) - new Date();
-                    const fuseLabel = getFuseLabel(progress, timeLeft);
+                    if (task.status === 1) {
+                        const progress = calculateFuseProgress(task.due_date, task.created_at);
+                        const fuseClass = getFuseClass(progress);
+                        const timeLeft = new Date(task.due_date) - new Date();
+                        const fuseLabel = getFuseLabel(progress, timeLeft);
 
-                    fuseHtml = `
-                        <div class="fuse-container">
-                            <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
-                            <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
-                        </div>
-                    `;
+                        fuseHtml = `
+                            <div class="fuse-container">
+                                <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
+                                <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
+                            </div>
+                        `;
+                    }
                 } catch (error) {
                     console.error('Error formatting date:', error);
                 }
@@ -257,14 +259,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="priority-${task.priority || 3}">${getPriorityLabel(task.priority || 3)}</span>
                     </div>
                     <p>${task.description || ''}</p>
+                    <p class="task-status">Статус: ${getStatusLabel(task.status)}</p>
                     ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
                     ${fuseHtml}
                 </div>
                 <div class="task-actions">
-                    <button class="action-btn complete-btn ${task.completed ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
-                            onclick="toggleTaskComplete(${task.id}, ${task.completed})"
+                    <button class="action-btn status-btn ${task.status === 2 ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
+                            onclick="toggleTaskStatus(${task.id}, ${task.status})"
                             ${isExpired ? 'disabled' : ''}>
-                        <i class="fas fa-check"></i>
+                        <i class="fas ${getStatusButtonIcon(task.status)}"></i>
                     </button>
                     <button class="action-btn edit-btn" onclick="editTask(${task.id})">
                         <i class="fas fa-pencil-alt"></i>
@@ -632,7 +635,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/';
     });
 
-    window.toggleTaskComplete = async function(taskId, currentStatus) {
+    window.toggleTaskStatus = async function(taskId, currentStatus) {
+        let newStatus;
+        if (currentStatus === 0) newStatus = 1;
+        else if (currentStatus === 1) newStatus = 2;
+        else newStatus = 0;
+
         try {
             const response = await fetch(`/tasks/${taskId}`, {
                 method: 'PUT',
@@ -641,20 +649,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    completed: !currentStatus
+                    status: newStatus
                 })
             });
 
             if (response.ok) {
                 const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
-                if (!currentStatus && taskElement) {
+                if (newStatus === 2 && taskElement) {
                     createCompletionAnimation(taskElement);
                 }
 
                 await loadTasks();
                 showNotification(
-                    currentStatus ? 'Задача отмечена как невыполненная' : 'Задача выполнена!',
-                    currentStatus ? 'error' : 'success'
+                    `Задача ${getStatusLabel(newStatus).toLowerCase()}`,
+                    'success'
                 );
             } else {
                 const errorData = await response.json();
@@ -890,6 +898,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         XLSX.writeFile(workbook, "tasks.xlsx");
         showNotification('Задачи успешно экспортированы в Excel', 'success');
+    }
+
+    function getStatusLabel(status) {
+        const statuses = {
+            0: 'Не взята в работу',
+            1: 'В работе',
+            2: 'Завершена'
+        };
+        return statuses[status] || 'Неизвестно';
+    }
+
+    function getStatusButtonIcon(status) {
+        if (status === 0) return 'fa-play';
+        if (status === 1) return 'fa-check';
+        return 'fa-undo';
+    }
+
+    function getStatusButtonClass(status) {
+        const classes = {
+            0: 'status-btn-start',
+            1: 'status-btn-complete',
+            2: 'status-btn-reopen'
+        };
+        return classes[status] || '';
     }
 
 });

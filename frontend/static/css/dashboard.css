@@ -984,7 +984,7 @@ input:checked + .slider:before {
 .task-actions {
     display: flex;
     gap: 8px;
-    margin-left: 0;
+    margin-left: -8px;
     margin-top: 15px;
 }
 
@@ -996,6 +996,22 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: center;
     font-size: 1rem;
+}
+
+.status-btn {
+    background: var(--success-color);
+}
+
+.status-btn:hover {
+    background: var(--success-dark);
+}
+
+.status-btn.completed {
+    background: var(--warning-color);
+}
+
+.status-btn.completed:hover {
+    background: #f39c12;
 }
 
 .action-btn:hover {
@@ -1486,4 +1502,45 @@ select#taskAssignee option {
 
 .password-toggle i {
     font-size: 16px;
+}
+
+.status-btn-start, .status-btn-complete, .status-btn-reopen {
+    background: #2ecc71 !important;
+}
+
+.task-status {
+    color: var(--warning-color) !important;
+    font-weight: 500;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 5px;
+}
+
+.edit-btn {
+    background: #3498db;
+}
+
+.delete-btn {
+    background: #e74c3c;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

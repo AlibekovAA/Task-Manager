@@ -43,7 +43,7 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True, nullable=False)
     description = Column(String, index=True)
-    completed = Column(Boolean, default=False)
+    status = Column(Integer, default=0)
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     due_date = Column(DateTime, nullable=True)
     priority = Column(Integer, default=3, nullable=False)

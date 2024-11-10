@@ -10,20 +10,26 @@ logger = setup_logger(__name__)
 
 
 def create_admin_user() -> None:
-    db = next(get_db())
-    admin = crud.get_user_by_email(db, ADMIN_EMAIL)
-    if not admin:
-        admin_user = schemas.UserCreate(
-            email=ADMIN_EMAIL,
-            password=ADMIN_PASSWORD,
-            secret_word=ADMIN_SECRET_WORD
-        )
-        admin = crud.create_user(db, admin_user)
-        admin.is_admin = True
-        db.commit()
-        logger.info("Admin user created successfully")
-    else:
-        logger.info("Admin user already exists")
+    db = SessionLocal()
+    try:
+        if not crud.get_user_by_email(db, ADMIN_EMAIL):
+            admin = crud.create_user(
+                db=db,
+                user=schemas.UserCreate(
+                    email=ADMIN_EMAIL,
+                    password=ADMIN_PASSWORD,
+                    secret_word=ADMIN_SECRET_WORD
+                )
+            )
+            admin.role = "admin"
+            db.commit()
+            logger.info("Admin user created successfully")
+        else:
+            logger.info("Admin user already exists")
+    except Exception as e:
+        logger.error("Error creating admin user: %s", e, exc_info=True)
+    finally:
+        db.close()
 
 
 def get_db() -> Generator:
