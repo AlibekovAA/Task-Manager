@@ -23,7 +23,13 @@ logger = setup_logger(__name__)
 models.Base.metadata.create_all(bind=engine)
 create_admin_user()
 
-app = FastAPI()
+app = FastAPI(
+    title="Task Manager API",
+    description="API для управления задачами",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
 
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 

@@ -1,0 +1,29 @@
+2024-11-10 23:04:54 - backend.models - WARNING - Failed to retrieve user by email - not found
+2024-11-10 23:04:54 - backend.models - INFO - Attempting to hash password
+2024-11-10 23:04:54 - backend.models - INFO - Password hashed successfully
+2024-11-10 23:04:54 - backend.models - INFO - Attempting to hash password
+2024-11-10 23:04:54 - backend.models - INFO - Password hashed successfully
+2024-11-10 23:04:54 - backend.models - INFO - Successfully create user
+2024-11-10 23:04:54 - backend.models - INFO - Admin user created successfully
+2024-11-10 23:05:40 - backend.models - INFO - Successfully retrieve user by email
+2024-11-10 23:05:40 - backend.models - INFO - Admin user already exists
+2024-11-10 23:06:50 - backend.models - INFO - Logging in user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Attempting to authenticate user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Successfully retrieve user by email
+2024-11-10 23:06:50 - backend.models - INFO - Attempting to verify password
+2024-11-10 23:06:50 - backend.models - INFO - Password verification completed
+2024-11-10 23:06:50 - backend.models - INFO - User admin@mail.ru authenticated successfully
+2024-11-10 23:06:50 - backend.models - INFO - Reset attempts for admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Access token created for user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Refresh token created for user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Tokens generated for user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Successfully retrieve user by email
+2024-11-10 23:06:50 - backend.models - INFO - User authenticated: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Current user: admin@mail.ru, role: default
+2024-11-10 23:06:50 - backend.models - INFO - Successfully retrieve user by email
+2024-11-10 23:06:50 - backend.models - INFO - User authenticated: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Current user: admin@mail.ru, role: default
+2024-11-10 23:06:50 - backend.models - INFO - Successfully retrieve user by email
+2024-11-10 23:06:50 - backend.models - INFO - User authenticated: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Reading tasks for user: admin@mail.ru
+2024-11-10 23:06:50 - backend.models - INFO - Found 0 tasks for user: admin@mail.ru
