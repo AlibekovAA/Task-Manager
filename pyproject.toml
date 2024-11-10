@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+addopts = "--cov=backend --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["backend"]
+omit = ["tests/*", "*/__init__.py"]

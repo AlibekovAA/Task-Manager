@@ -71,8 +71,8 @@ class UserRoleUpdate(BaseModel):
     @field_validator('role')
     @classmethod
     def validate_role(cls, value: str) -> str:
-        if value not in {'user', 'admin', 'pm'}:
-            raise ValueError('Role must be either user, admin or pm')
+        if value not in {'default', 'admin', 'pm'}:
+            raise ValueError('Role must be either default, admin or pm')
         return value
 
 

@@ -7,3 +7,5 @@ passlib[bcrypt]
 python-jose[cryptography]
 bcrypt==4.0.1
 email-validator
+pytest
+pytest-cov
