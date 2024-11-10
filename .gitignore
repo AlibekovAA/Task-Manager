@@ -1,9 +1,4 @@
 .*
-!.gitignore
-!.github/
-!.env.example
-!.flake8
-!.coveragerc
 
 __pycache__/
 *.py[cod]
