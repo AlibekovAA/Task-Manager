@@ -16,6 +16,7 @@ from backend.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from backend.utils import create_admin_user, get_db
 from backend.database import engine
 from backend.logger import setup_logger
+from backend.rate_limiter import RateLimiter
 
 logger = setup_logger(__name__)
 
@@ -32,6 +33,8 @@ db_dependency = Annotated[Session, Depends(get_db)]
 token_dependency = Annotated[str, Depends(oauth2_scheme)]
 refresh_token_body = Body(...)
 password_body = Body(...)
+
+rate_limiter = RateLimiter()
 
 
 def get_current_user(db: db_dependency, token: token_dependency):
@@ -88,33 +91,50 @@ def read_users_me(current_user: current_user_dependency):
 
 
 @app.post("/token", response_model=schemas.Token)
-def login_for_access_token(
-    db: db_dependency,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: db_dependency
 ):
     logger.info(f"Logging in user: {form_data.username}")
-    user = auth.authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        logger.warning("Invalid username or password")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль, либо аккаунт заблокирован",
-            headers={"WWW-Authenticate": "Bearer"},
+
+    try:
+        rate_limiter.check_rate_limit(form_data.username)
+
+        user = auth.authenticate_user(db, form_data.username, form_data.password)
+        if not user:
+            rate_limiter.add_attempt(form_data.username)
+            logger.warning(f"Failed login attempt for user: {form_data.username}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный email или пароль",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        rate_limiter.reset_attempts(form_data.username)
+
+        access_token = auth.create_access_token(
+            data={"sub": user.email},
+            expires_delta=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+        )
+        refresh_token = auth.create_refresh_token(
+            data={"sub": user.email}
         )
 
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-    access_token = auth.create_access_token(
-        data={"sub": user.email},
-        expires_delta=access_token_expires
-    )
-    refresh_token = auth.create_refresh_token(data={"sub": user.email})
+        logger.info(f"Tokens generated for user: {form_data.username}")
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer"
+        }
 
-    logger.info(f"Tokens generated for user: {user.email}")
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Внутренняя ошибка сервера"
+        )
 
 
 @app.post("/token/refresh", response_model=schemas.Token)
