@@ -35,6 +35,7 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
+    min-height: 450px;
 }
 
 .form-base, .auth-form {
@@ -42,10 +43,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    padding-bottom: 1rem;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    position: relative;
+    margin-bottom: 2rem;
     text-align: left;
     width: 100%;
     max-width: 500px;
@@ -128,9 +132,17 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
 }
 
 .error-message {
-    color: var(--error-color);
-    margin-bottom: 1rem;
-    min-height: 20px;
+    color: #ff3333;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    min-height: 1.25rem;
+    position: absolute;
+    bottom: -1.5rem;
+    left: 0;
+    width: 100%;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    text-align: left;
 }
 
 .institute-logo {
@@ -277,6 +289,7 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
 .password-field-wrapper {
     position: relative;
     width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 .password-toggle {
@@ -312,4 +325,8 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     padding-right: 40px;
     background-color: white;
     color: #333;
+}
+
+button[type="submit"] {
+    margin-top: 1rem;
 }

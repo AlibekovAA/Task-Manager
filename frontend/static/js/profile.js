@@ -153,6 +153,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     setInterval(loadUserProfile, 30000);
+
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const input = e.currentTarget.previousElementSibling;
+            const icon = e.currentTarget.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
 });
 
 async function fetchWithToken(url, options = {}) {

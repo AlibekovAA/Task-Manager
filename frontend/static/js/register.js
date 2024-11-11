@@ -22,10 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!validateEmail(emailInput.value)) {
             emailInput.setCustomValidity('Введите корректный email адрес');
             errorMessage.textContent = 'Введите корректный email адрес';
-            errorMessage.style.display = 'block';
+            errorMessage.style.visibility = 'visible';
+            errorMessage.style.opacity = '1';
         } else {
             emailInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
+            errorMessage.style.visibility = 'hidden';
+            errorMessage.style.opacity = '0';
         }
     });
 
@@ -33,10 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!validatePassword(passwordInput.value)) {
             passwordInput.setCustomValidity('Пароль должен содержать не менее 6 символов');
             errorMessage.textContent = 'Пароль должен содержать не менее 6 символов';
-            errorMessage.style.display = 'block';
+            errorMessage.style.visibility = 'visible';
+            errorMessage.style.opacity = '1';
         } else {
             passwordInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
+            errorMessage.style.visibility = 'hidden';
+            errorMessage.style.opacity = '0';
         }
     });
 
@@ -44,10 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!validateSecretWord(secretWordInput.value)) {
             secretWordInput.setCustomValidity('Кодовое слово должно содержать от 3 до 50 символов');
             errorMessage.textContent = 'Кодовое слово должно содержать от 3 до 50 символов';
-            errorMessage.style.display = 'block';
+            errorMessage.style.visibility = 'visible';
+            errorMessage.style.opacity = '1';
         } else {
             secretWordInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
+            errorMessage.style.visibility = 'hidden';
+            errorMessage.style.opacity = '0';
         }
     });
 
@@ -128,4 +134,21 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.style.display = 'block';
         }
     });
+
+    document.querySelectorAll('.password-toggle').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const input = e.currentTarget.previousElementSibling;
+        const icon = e.currentTarget.querySelector('i');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+});
 });
