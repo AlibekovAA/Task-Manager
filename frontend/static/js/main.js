@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (password.length < 6) {
-            errorMessage.textContent = 'Пароль должен содержать минимум 6 символов';
+            errorMessage.textContent = 'Введите корректный пароль';
             return;
         }
 

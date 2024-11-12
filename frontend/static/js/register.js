@@ -22,38 +22,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!validateEmail(emailInput.value)) {
             emailInput.setCustomValidity('Введите корректный email адрес');
             errorMessage.textContent = 'Введите корректный email адрес';
-            errorMessage.style.visibility = 'visible';
-            errorMessage.style.opacity = '1';
+            errorMessage.style.display = 'block';
         } else {
             emailInput.setCustomValidity('');
-            errorMessage.style.visibility = 'hidden';
-            errorMessage.style.opacity = '0';
+            errorMessage.style.display = 'none';
         }
     });
 
     passwordInput.addEventListener('input', () => {
         if (!validatePassword(passwordInput.value)) {
-            passwordInput.setCustomValidity('Пароль должен содержать не менее 6 символов');
-            errorMessage.textContent = 'Пароль должен содержать не менее 6 символов';
-            errorMessage.style.visibility = 'visible';
-            errorMessage.style.opacity = '1';
+            passwordInput.setCustomValidity('Введите корректный пароль');
+            errorMessage.textContent = 'Введите корректный пароль';
+            errorMessage.style.display = 'block';
         } else {
             passwordInput.setCustomValidity('');
-            errorMessage.style.visibility = 'hidden';
-            errorMessage.style.opacity = '0';
+            errorMessage.style.display = 'none';
         }
     });
 
     secretWordInput.addEventListener('input', () => {
         if (!validateSecretWord(secretWordInput.value)) {
-            secretWordInput.setCustomValidity('Кодовое слово должно содержать от 3 до 50 символов');
-            errorMessage.textContent = 'Кодовое слово должно содержать от 3 до 50 символов';
-            errorMessage.style.visibility = 'visible';
-            errorMessage.style.opacity = '1';
+            secretWordInput.setCustomValidity('Введите корректное кодовое слово');
+            errorMessage.textContent = 'Введите корректное кодовое слово';
+            errorMessage.style.display = 'block';
         } else {
             secretWordInput.setCustomValidity('');
-            errorMessage.style.visibility = 'hidden';
-            errorMessage.style.opacity = '0';
+            errorMessage.style.display = 'none';
         }
     });
 
@@ -76,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!validatePassword(password)) {
-            errorMessage.textContent = 'Пароль должен содержать не менее 6 символов';
+            errorMessage.textContent = 'Введите корректный пароль';
             errorMessage.style.display = 'block';
             return;
         }
@@ -88,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!validateSecretWord(secretWord)) {
-            errorMessage.textContent = 'Кодовое слово должно содержать от 3 до 50 символов';
+            errorMessage.textContent = 'Введите корректное кодовое слово';
             errorMessage.style.display = 'block';
             return;
         }
@@ -116,22 +110,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     const passwordError = errors.find(error => error.loc.includes('password'));
                     const emailError = errors.find(error => error.loc.includes('email'));
 
+                    errorMessage.style.display = 'block';
                     if (passwordError) {
-                        errorMessage.textContent = 'Пароль должен содержать не менее 6 символов';
+                        errorMessage.textContent = 'Введите корректный пароль';
                     } else if (emailError) {
                         errorMessage.textContent = 'Введите корректный email адрес';
                     } else {
                         errorMessage.textContent = 'Проверьте правильность введенных данных';
                     }
                 } else {
+                    errorMessage.style.display = 'block';
                     errorMessage.textContent = data.detail || 'Ошибка при регистрации';
                 }
-                errorMessage.style.display = 'block';
             }
         } catch (error) {
             console.error('Error:', error);
-            errorMessage.textContent = 'Ошибка соединения с сервером';
             errorMessage.style.display = 'block';
+            errorMessage.textContent = 'Ошибка соединения с сервером';
         }
     });
 

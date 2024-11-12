@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (newPassword.length < 6) {
-            passwordError.textContent = 'Пароль должен содержать не менее 6 символов';
+            passwordError.textContent = 'Введите корректный пароль';
             passwordError.style.display = 'block';
             submitButton.disabled = false;
             submitButton.textContent = 'Сменить пароль';

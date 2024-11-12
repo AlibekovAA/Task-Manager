@@ -92,7 +92,6 @@ button, .btn-primary, .back-button {
     transition: all 0.3s ease;
     padding: 0.8rem 1.5rem;
     width: 100%;
-    max-width: 320px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -133,16 +132,28 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
 
 .error-message {
     color: #ff3333;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    min-height: 1.25rem;
-    position: absolute;
-    bottom: -1.5rem;
-    left: 0;
-    width: 100%;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    text-align: left;
+    font-size: 14px;
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 51, 51, 0.1);
+    display: none;
+    text-align: center;
+}
+
+.error-message.show {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .institute-logo {
@@ -248,10 +259,40 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     justify-content: space-between;
     gap: 1rem;
     margin-top: 1rem;
+    width: 100%;
 }
 
 .modal-buttons button {
-    max-width: calc(50% - 0.5rem);
+    flex: 1;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+}
+
+.modal-buttons button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-buttons .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.password-toggle {
+    width: auto !important;
+    max-width: none !important;
+    flex: none !important;
 }
 
 .firework {
@@ -327,6 +368,8 @@ button:disabled, .btn-primary:disabled, .back-button:disabled {
     color: #333;
 }
 
-button[type="submit"] {
-    margin-top: 1rem;
+.reset-password-step form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
