@@ -87,6 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const email = resetPasswordForm.resetEmail.value;
         const secretWord = resetPasswordForm.secretWord.value;
+        const errorMessage = document.getElementById('resetErrorMessage');
+
+        errorMessage.style.display = 'none';
+        errorMessage.textContent = '';
 
         try {
             const response = await fetch('/users/verify-reset', {
@@ -107,10 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 resetSecretWord = secretWord;
                 stepOne.style.display = 'none';
                 stepTwo.style.display = 'block';
-                document.getElementById('resetErrorMessage').textContent = '';
+                errorMessage.textContent = '';
+                errorMessage.style.display = 'none';
             } else {
-                const errorMessage = document.getElementById('resetErrorMessage');
                 errorMessage.style.color = '#ff3333';
+                errorMessage.style.display = 'block';
 
                 switch (response.status) {
                     case 404:
@@ -125,11 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     default:
                         errorMessage.textContent = data.detail || 'Произошла ошибка при проверке данных';
                 }
+
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                    errorMessage.textContent = '';
+                }, 10000);
             }
         } catch (error) {
-            const errorMessage = document.getElementById('resetErrorMessage');
             errorMessage.style.color = '#ff3333';
+            errorMessage.style.display = 'block';
             errorMessage.textContent = 'Ошибка соединения с сервером. Попробуйте позже.';
+
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+                errorMessage.textContent = '';
+            }, 10000);
         }
     });
 
