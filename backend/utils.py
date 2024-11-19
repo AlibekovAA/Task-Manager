@@ -38,3 +38,14 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
+
+
+def convert_ty_binary_file(filename: str):
+    with open(filename, 'rb') as file:
+        blob_data = file.read()
+    return blob_data
+
+
+def write_binary_to_file(data, filename: str):
+    with open(filename, 'wb') as file:
+        file.write(data)

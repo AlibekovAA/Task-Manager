@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from email_validator import validate_email, EmailNotValidError
@@ -47,12 +47,12 @@ class Task(Base):
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     due_date = Column(DateTime, nullable=True)
     priority = Column(Integer, default=3, nullable=False)
-
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     user = relationship("User", back_populates="tasks", foreign_keys=[user_id])
     created_by = relationship("User", back_populates="created_tasks", foreign_keys=[created_by_id])
+    files = relationship("TaskFile", back_populates="task", cascade="all, delete-orphan")
 
     @classmethod
     def create_task(cls, **kwargs) -> "Task":
@@ -64,3 +64,17 @@ class Task(Base):
         except Exception as e:
             logger.error(f"Error creating task: {e}")
             raise
+
+
+class TaskFile(Base):
+    __tablename__ = "task_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, nullable=False)
+    content_type = Column(String, nullable=False)
+    data = Column(LargeBinary, nullable=False)
+    size = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=now_moscow, nullable=False)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
+
+    task = relationship("Task", back_populates="files")
