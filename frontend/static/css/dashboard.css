@@ -1544,3 +1544,77 @@ select#taskAssignee option {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.files-btn {
+    position: relative;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.files-btn:hover {
+    color: #2196F3;
+}
+
+.files-btn i {
+    font-size: 1.1em;
+}
+
+.files-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #2196F3;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.files-btn[data-has-files="true"] {
+    color: #2196F3;
+}
+
+.files-btn[data-has-files="true"]:hover {
+    color: #1976D2;
+}
+
+.modal.active {
+    display: flex;
+}
+
+#filesModal .modal-content {
+    width: 500px;
+    max-width: 90%;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.file-actions button {
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-actions button i {
+    font-size: 16px;
+}

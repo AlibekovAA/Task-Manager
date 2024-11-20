@@ -21,8 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterOptions = document.querySelectorAll('.filter-options');
     const exportBtn = document.getElementById('exportBtn');
     const exportMenu = document.querySelector('.export-menu');
+    const filesModal = document.getElementById('filesModal');
+    const closeFilesBtn = document.getElementById('closeFilesBtn');
+    const fileUploadForm = document.getElementById('fileUploadForm');
 
     let taskToDelete = null;
+    let currentTaskId = null;
 
     const notification = document.getElementById('notification');
     const notificationMessage = notification.querySelector('.notification-message');
@@ -215,70 +219,86 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tasksList.innerHTML = '';
         tasks.forEach(task => {
-            const taskElement = document.createElement('div');
-            const isExpired = task.due_date && new Date(task.due_date) < new Date() && task.status !== 2;
-            taskElement.className = `task-item ${task.status === 2 ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
-            taskElement.setAttribute('data-task-id', task.id);
+            const taskElement = createTaskCard(task);
+            tasksList.appendChild(taskElement);
+        });
+    }
 
-            let dueDate = '';
-            let fuseHtml = '';
+    function createTaskCard(task) {
+        const taskElement = document.createElement('div');
+        const isExpired = task.due_date && new Date(task.due_date) < new Date() && task.status !== 2;
+        taskElement.className = `task-item ${task.status === 2 ? 'completed' : ''} ${isExpired ? 'expired' : ''}`;
+        taskElement.setAttribute('data-task-id', task.id);
 
-            if (task.due_date && task.status !== 2) {
-                try {
-                    const date = new Date(task.due_date);
-                    dueDate = date.toLocaleString('ru-RU', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+        let dueDate = '';
+        let fuseHtml = '';
 
-                    if (task.status === 1) {
-                        const progress = calculateFuseProgress(task.due_date, task.created_at);
-                        const fuseClass = getFuseClass(progress);
-                        const timeLeft = new Date(task.due_date) - new Date();
-                        const fuseLabel = getFuseLabel(progress, timeLeft);
+        if (task.due_date && task.status !== 2) {
+            try {
+                const date = new Date(task.due_date);
+                dueDate = date.toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
 
-                        fuseHtml = `
-                            <div class="fuse-container">
-                                <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
-                                <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
-                            </div>
-                        `;
-                    }
-                } catch (error) {
-                    console.error('Error formatting date:', error);
+                if (task.status === 1) {
+                    const progress = calculateFuseProgress(task.due_date, task.created_at);
+                    const fuseClass = getFuseClass(progress);
+                    const timeLeft = new Date(task.due_date) - new Date();
+                    const fuseLabel = getFuseLabel(progress, timeLeft);
+
+                    fuseHtml = `
+                        <div class="fuse-container">
+                            <div class="fuse-label ${fuseClass}">${fuseLabel}</div>
+                            <div class="fuse ${fuseClass}" style="width: ${progress}%"></div>
+                        </div>
+                    `;
                 }
+            } catch (error) {
+                console.error('Error formatting date:', error);
             }
+        }
 
-            taskElement.innerHTML = `
-                <div class="task-info">
-                    <div class="task-header">
-                        <h3>${task.title}</h3>
-                        <span class="priority-${task.priority || 3}">${getPriorityLabel(task.priority || 3)}</span>
-                    </div>
-                    <p>${task.description || ''}</p>
-                    <p class="task-status">Статус: ${getStatusLabel(task.status)}</p>
-                    ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
-                    ${fuseHtml}
+        taskElement.innerHTML = `
+            <div class="task-info">
+                <div class="task-header">
+                    <h3>${task.title}</h3>
+                    <span class="priority-${task.priority || 3}">${getPriorityLabel(task.priority || 3)}</span>
                 </div>
-                <div class="task-actions">
+                <p>${task.description || ''}</p>
+                <p class="task-status">Статус: ${getStatusLabel(task.status)}</p>
+                ${dueDate ? `<p class="due-date ${isExpired ? 'expired' : ''}">Срок: ${dueDate}</p>` : ''}
+                ${fuseHtml}
+            </div>
+            <div class="task-actions">
+                <button class="action-btn files-btn" onclick="openFilesModal(${task.id})" title="Фа��лы задачи">
+                    <i class="fas fa-paperclip"></i>
+                    ${task.files?.length ? `<span class="files-count">${task.files.length}</span>` : ''}
+                </button>
+                ${task.status === 2 ? `
+                    <button class="action-btn status-btn" onclick="toggleTaskStatus(${task.id}, ${task.status})" title="Возобновить задачу">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                ` : `
                     <button class="action-btn status-btn ${task.status === 2 ? 'completed' : ''} ${isExpired ? 'disabled' : ''}"
                             onclick="toggleTaskStatus(${task.id}, ${task.status})"
                             ${isExpired ? 'disabled' : ''}>
                         <i class="fas ${getStatusButtonIcon(task.status)}"></i>
                     </button>
-                    <button class="action-btn edit-btn" onclick="editTask(${task.id})">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                    <button class="action-btn delete-btn" onclick="showDeleteConfirmModal(${task.id})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-            tasksList.appendChild(taskElement);
-        });
+                `}
+                <button class="action-btn edit-btn" onclick="editTask(${task.id})">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button class="action-btn delete-btn" onclick="showDeleteConfirmModal(${task.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        return taskElement;
     }
 
     function showNotification(message, type = 'error') {
@@ -923,5 +943,192 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         return classes[status] || '';
     }
+
+    window.openFilesModal = async function(taskId) {
+        currentTaskId = taskId;
+        filesModal.classList.add('active');
+        await loadTaskFiles(taskId);
+    };
+
+    closeFilesBtn.addEventListener('click', () => {
+        filesModal.classList.remove('active');
+        currentTaskId = null;
+        const filesList = document.getElementById('filesList');
+        filesList.innerHTML = '';
+    });
+
+    async function loadTaskFiles(taskId) {
+        try {
+            const response = await fetch(`/tasks/${taskId}/files`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const files = await response.json();
+                displayFiles(files);
+            } else {
+                showNotification('Ошибка при загрузке файлов', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading files:', error);
+            showNotification('Ошибка при загрузке файлов', 'error');
+        }
+    }
+
+    function displayFiles(files) {
+        const filesList = document.getElementById('filesList');
+        filesList.innerHTML = '';
+
+        if (files.length === 0) {
+            filesList.innerHTML = `
+                <div class="empty-files">
+                    <i class="fas fa-file-upload"></i>
+                    <p>Нет загруженных файлов</p>
+                </div>
+            `;
+            return;
+        }
+
+        files.forEach(file => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>
+                    <i class="fas ${getFileIcon(file.filename)}"></i>
+                    ${file.filename}
+                </span>
+                <div class="file-actions">
+                    <button class="download-btn" onclick="downloadFile(${currentTaskId}, ${file.id}, '${file.filename}')">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="delete-btn" onclick="deleteFile(${currentTaskId}, ${file.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            filesList.appendChild(fileItem);
+        });
+    }
+
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const icons = {
+            pdf: 'fa-file-pdf',
+            doc: 'fa-file-word',
+            docx: 'fa-file-word',
+            jpg: 'fa-file-image',
+            jpeg: 'fa-file-image',
+            png: 'fa-file-image',
+            gif: 'fa-file-image'
+        };
+        return icons[ext] || 'fa-file';
+    }
+
+    fileUploadForm.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('taskFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showNotification('Выберите файл для загрузки', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch(`/tasks/${currentTaskId}/files/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                showNotification('Файл успешно загружен', 'success');
+                fileInput.value = '';
+                await loadTaskFiles(currentTaskId);
+            } else {
+                const error = await response.json();
+                showNotification(error.detail || 'Ошибка при загрузке файла', 'error');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showNotification('Ошибка при загрузке файла', 'error');
+        }
+    };
+
+    async function downloadFile(taskId, fileId, filename) {
+        try {
+            const response = await fetch(`/tasks/${taskId}/files/${fileId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } else {
+                showNotification('Ошибка при скачивании файла', 'error');
+            }
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            showNotification('Ошибка при скачивании файла', 'error');
+        }
+    }
+
+    async function deleteFile(taskId, fileId) {
+        const deleteModal = document.getElementById('deleteFileConfirmModal');
+        const confirmBtn = document.getElementById('confirmFileDeleteBtn');
+        const cancelBtn = document.getElementById('cancelFileDeleteBtn');
+
+        deleteModal.classList.add('active');
+
+        return new Promise((resolve) => {
+            confirmBtn.onclick = async () => {
+                deleteModal.classList.remove('active');
+                try {
+                    const response = await fetch(`/tasks/${taskId}/files/${fileId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        showNotification('Файл успешно удален', 'success');
+                        await loadTaskFiles(currentTaskId);
+                    } else {
+                        showNotification('Ошибка при удалении файла', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting file:', error);
+                    showNotification('Ошибка при удалении файла', 'error');
+                }
+                resolve(true);
+            };
+
+            cancelBtn.onclick = () => {
+                deleteModal.classList.remove('active');
+                resolve(false);
+            };
+        });
+    }
+
+    window.downloadFile = downloadFile;
+    window.deleteFile = deleteFile;
 
 });

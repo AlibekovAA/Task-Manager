@@ -83,11 +83,32 @@ class UserRoleUpdate(BaseModel):
         return value
 
 
+class TaskFileBase(BaseModel):
+    filename: str
+    content_type: str
+    size: int
+
+
+class TaskFileCreate(TaskFileBase):
+    task_id: int
+    data: bytes
+
+
+class TaskFileResponse(TaskFileBase):
+    id: int
+    created_at: datetime
+    task_id: int
+
+    class Config:
+        from_attributes = True
+
+
 class TaskResponse(TaskBase):
     id: int
     created_at: datetime
     user_id: int
     created_by_id: int
+    files: List[TaskFileResponse] = []
 
     class Config:
         from_attributes = True

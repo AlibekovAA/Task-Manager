@@ -68,7 +68,7 @@
   - Откройте htmlcov/index.html в браузере для просмотра детального отчета.
 
 ## Запуск сервера
-- uvicorn app.main:app --reload
+- uvicorn main:app --reload
 
 ---
 ⭐️ Star на GitHub — это помогает!

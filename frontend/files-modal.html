@@ -1,0 +1,49 @@
+<div class="modal" id="filesModal">
+    <div class="modal-content files-modal">
+        <div class="modal-header">
+            <h3>Файлы задачи</h3>
+            <button class="close-btn" id="closeFilesBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="files-container">
+            <div class="upload-section">
+                <form id="fileUploadForm">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="taskFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif">
+                        <label for="taskFile">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Перетащите файлы сюда или нажмите для выбора</span>
+                            <small>PDF, DOC, JPG, PNG (до 10MB)</small>
+                        </label>
+                    </div>
+                    <button type="submit" class="upload-btn">
+                        <i class="fas fa-upload"></i>
+                        Загрузить файл
+                    </button>
+                </form>
+            </div>
+            <div class="files-list" id="filesList">
+                <div class="empty-files">
+                    <i class="fas fa-file-upload"></i>
+                    <p>Нет загруженных файлов</p>
+                </div>
+            </div>
+        </div>
+        <div class="delete-confirm-modal" id="deleteFileConfirmModal">
+            <div class="delete-confirm-content">
+                <div class="delete-confirm-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Подтверждение удаления</h3>
+                </div>
+                <div class="delete-confirm-message">
+                    Вы действительно хотите удалить этот файл? Это действие нельзя будет отменить.
+                </div>
+                <div class="delete-confirm-buttons">
+                    <button class="delete-confirm-btn cancel" id="cancelFileDeleteBtn">Отмена</button>
+                    <button class="delete-confirm-btn delete" id="confirmFileDeleteBtn">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

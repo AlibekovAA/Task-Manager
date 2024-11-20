@@ -1,11 +1,11 @@
 from datetime import timedelta
 from typing import Annotated, List
 
-from fastapi import FastAPI, Depends, HTTPException, status, Body
+from fastapi import FastAPI, Depends, HTTPException, status, Body, UploadFile
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from jose import JWTError
 
 import backend.models as models
@@ -13,7 +13,7 @@ import backend.schemas as schemas
 import backend.crud as crud
 import backend.auth as auth
 from backend.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from backend.utils import create_admin_user, get_db
+from backend.utils import create_admin_user, get_db, sanitize_filename, validate_file_type, validate_file_size
 from backend.database import engine
 from backend.logger import setup_logger
 from backend.rate_limiter import RateLimiter
@@ -568,3 +568,90 @@ def reset_password(
 
     logger.info(f"Password successfully reset for user: {reset_data.email}")
     return {"message": "Пароль успешно изменен"}
+
+
+@app.post("/tasks/{task_id}/files/")
+async def upload_task_file(
+    task_id: int,
+    file: UploadFile,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    task = crud.get_task(db, task_id, current_user.id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    filename = sanitize_filename(file.filename)
+    if not validate_file_type(filename):
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    file_data = await file.read()
+    if not validate_file_size(len(file_data)):
+        raise HTTPException(status_code=400, detail="File too large")
+
+    try:
+        db_file = crud.create_task_file(db, task_id, filename, file_data)
+        return {"id": db_file.id, "filename": db_file.filename}
+    except Exception as e:
+        logger.error(f"Error uploading file: {e}")
+        raise HTTPException(status_code=500, detail="Could not upload file")
+
+
+@app.get("/tasks/{task_id}/files/", response_model=List[schemas.TaskFileResponse])
+async def get_task_files(
+    task_id: int,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    """Получить список всех файлов задачи"""
+    task = crud.get_task(db, task_id, current_user.id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    files = crud.get_task_files(db, task_id)
+    return files
+
+
+@app.get("/tasks/{task_id}/files/{file_id}")
+async def download_task_file(
+    task_id: int,
+    file_id: int,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    """Скачать файл задачи"""
+    task = crud.get_task(db, task_id, current_user.id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    file = crud.get_task_file(db, file_id)
+    if not file or file.task_id != task_id:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return Response(
+        content=file.data,
+        media_type=file.content_type,
+        headers={
+            "Content-Disposition": f"attachment; filename={file.filename}"
+        }
+    )
+
+
+@app.delete("/tasks/{task_id}/files/{file_id}", response_model=schemas.TaskFileResponse)
+async def delete_task_file(
+    task_id: int,
+    file_id: int,
+    db: db_dependency,
+    current_user: current_user_dependency
+):
+    """Удалить файл задачи"""
+    task = crud.get_task(db, task_id, current_user.id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    file = crud.get_task_file(db, file_id)
+    if not file or file.task_id != task_id:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    deleted_file = crud.delete_task_file(db, file_id)
+    return deleted_file
