@@ -9,18 +9,17 @@
         <div class="files-container">
             <div class="upload-section">
                 <form id="fileUploadForm">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="taskFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif">
-                        <label for="taskFile">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Перетащите файлы сюда или нажмите для выбора</span>
-                            <small>PDF, DOC, JPG, PNG (до 10MB)</small>
+                    <div class="file-input-container">
+                        <label class="upload-btn file-select-btn">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Выберите файл</span>
+                            <input type="file" id="taskFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif">
                         </label>
+                        <button type="submit" class="upload-btn">
+                            <i class="fas fa-upload"></i>
+                            Загрузить
+                        </button>
                     </div>
-                    <button type="submit" class="upload-btn">
-                        <i class="fas fa-upload"></i>
-                        Загрузить файл
-                    </button>
                 </form>
             </div>
             <div class="files-list" id="filesList">

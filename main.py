@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated, List
+from urllib.parse import quote
 
 from fastapi import FastAPI, Depends, HTTPException, status, Body, UploadFile
 from sqlalchemy.orm import Session
@@ -619,20 +620,24 @@ async def download_task_file(
     db: db_dependency,
     current_user: current_user_dependency
 ):
-    """Скачать файл задачи"""
-    task = crud.get_task(db, task_id, current_user.id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    file = crud.get_task_file(db, file_id)
+    file = crud.get_task_file(db, file_id=file_id)
     if not file or file.task_id != task_id:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="Файл не найден")
+
+    task = crud.get_task(db, task_id=task_id, user_id=current_user.id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
+
+    if task.user_id != current_user.id and task.creator_id != current_user.id and current_user.role not in ['admin', 'pm']:
+        raise HTTPException(status_code=403, detail="Нет доступа к файлу")
+
+    filename_encoded = quote(file.filename)
 
     return Response(
         content=file.data,
         media_type=file.content_type,
         headers={
-            "Content-Disposition": f"attachment; filename={file.filename}"
+            'Content-Disposition': f'attachment; filename*=UTF-8\'\'{filename_encoded}'
         }
     )
 
@@ -644,7 +649,6 @@ async def delete_task_file(
     db: db_dependency,
     current_user: current_user_dependency
 ):
-    """Удалить файл задачи"""
     task = crud.get_task(db, task_id, current_user.id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -653,5 +657,14 @@ async def delete_task_file(
     if not file or file.task_id != task_id:
         raise HTTPException(status_code=404, detail="File not found")
 
-    deleted_file = crud.delete_task_file(db, file_id)
-    return deleted_file
+    if task.user_id != current_user.id and task.creator_id != current_user.id and current_user.role not in ['admin', 'pm']:
+        raise HTTPException(status_code=403, detail="Нет доступа к файлу")
+
+    try:
+        deleted_file = crud.delete_task_file(db, file_id)
+        if deleted_file:
+            return deleted_file
+        raise HTTPException(status_code=404, detail="Файл не найден")
+    except Exception as e:
+        logger.error(f"Error deleting file: {e}")
+        raise HTTPException(status_code=500, detail="Не удалось удалить файл")

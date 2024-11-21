@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ${fuseHtml}
             </div>
             <div class="task-actions">
-                <button class="action-btn files-btn" onclick="openFilesModal(${task.id})" title="Фа��лы задачи">
+                <button class="action-btn files-btn" onclick="openFilesModal(${task.id})" title="Фалы задачи">
                     <i class="fas fa-paperclip"></i>
                     ${task.files?.length ? `<span class="files-count">${task.files.length}</span>` : ''}
                 </button>
@@ -1037,6 +1037,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const fileLabel = document.querySelector('.file-select-btn span');
+        if (fileLabel) {
+            fileLabel.textContent = file.name;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -1091,15 +1096,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function deleteFile(taskId, fileId) {
-        const deleteModal = document.getElementById('deleteFileConfirmModal');
-        const confirmBtn = document.getElementById('confirmFileDeleteBtn');
-        const cancelBtn = document.getElementById('cancelFileDeleteBtn');
+        const filesModal = document.getElementById('filesModal');
+        const deleteModal = filesModal.querySelector('#deleteFileConfirmModal');
+        if (!deleteModal) {
+            console.error('Delete file confirmation modal not found');
+            return;
+        }
+
+        const confirmBtn = deleteModal.querySelector('#confirmFileDeleteBtn');
+        const cancelBtn = deleteModal.querySelector('#cancelFileDeleteBtn');
 
         deleteModal.classList.add('active');
 
         return new Promise((resolve) => {
-            confirmBtn.onclick = async () => {
+            const handleConfirm = async () => {
                 deleteModal.classList.remove('active');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+
                 try {
                     const response = await fetch(`/tasks/${taskId}/files/${fileId}`, {
                         method: 'DELETE',
@@ -1121,10 +1135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 resolve(true);
             };
 
-            cancelBtn.onclick = () => {
+            const handleCancel = () => {
                 deleteModal.classList.remove('active');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
                 resolve(false);
             };
+
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
         });
     }
 
