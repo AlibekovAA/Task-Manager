@@ -995,10 +995,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
             fileItem.innerHTML = `
-                <span>
+                <div class="file-info">
                     <i class="fas ${getFileIcon(file.filename)}"></i>
-                    ${file.filename}
-                </span>
+                    <span class="filename">${file.filename}</span>
+                </div>
                 <div class="file-actions">
                     <button class="download-btn" onclick="downloadFile(${currentTaskId}, ${file.id}, '${file.filename}')">
                         <i class="fas fa-download"></i>
