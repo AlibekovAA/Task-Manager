@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 from backend.database import Base
 from main import app
 from backend.utils import get_db
+from backend.rate_limiter import rate_limiter
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
@@ -80,9 +81,19 @@ def create_task(client, auth_headers):
     return _create_task
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    rate_limiter.attempts = {}
+    rate_limiter.blocked_until = {}
+    yield
+
+
 @pytest.fixture
 def auth_headers(client):
-    client.post(
+    rate_limiter.attempts = {}
+    rate_limiter.blocked_until = {}
+
+    register_response = client.post(
         "/users/",
         json={
             "email": "test@example.com",
@@ -90,13 +101,16 @@ def auth_headers(client):
             "secret_word": "secret"
         }
     )
+    assert register_response.status_code == 200, f"User registration failed: {register_response.json()}"
 
-    response = client.post(
+    login_response = client.post(
         "/token",
         data={
             "username": "test@example.com",
             "password": "testpass123"
         }
     )
-    token = response.json()["access_token"]
+    assert login_response.status_code == 200, f"Login failed: {login_response.json()}"
+
+    token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

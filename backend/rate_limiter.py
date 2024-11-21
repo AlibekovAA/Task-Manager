@@ -67,3 +67,18 @@ class RateLimiter:
         if email in self.blocked_until:
             del self.blocked_until[email]
         logger.info(f"Reset attempts for {email}")
+
+    def reset(self, email: str = None) -> None:
+        if email:
+            self.reset_attempts(email)
+        else:
+            self.attempts.clear()
+            self.blocked_until.clear()
+            logger.info("Reset all rate limiting data")
+
+    def reset_all(self):
+        self.attempts.clear()
+        self.blocked_until.clear()
+
+
+rate_limiter = RateLimiter()
