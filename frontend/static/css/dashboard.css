@@ -326,10 +326,45 @@ body {
 }
 
 .disabled,
-button:disabled {
+button:disabled,
+.action-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+.action-btn.disabled,
+.action-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.task-actions button:disabled,
+.task-actions button.disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.user-actions select:disabled,
+.user-actions input[type="checkbox"]:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.switch input:disabled + .slider {
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.toggle-container:has(input:disabled) {
+    cursor: not-allowed !important;
+}
+
+.user-actions select:disabled {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .error-message {
@@ -1051,12 +1086,6 @@ input:checked + .slider:before {
     background: var(--danger-dark);
 }
 
-.action-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
 .action-btn i {
     font-size: 0.9rem;
 }
@@ -1538,11 +1567,6 @@ select#taskAssignee option {
 .action-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.action-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .files-btn {
