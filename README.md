@@ -56,6 +56,8 @@
 ![info](example/info.jpg)
 ![register](example/register.jpg)
 ![completed](example/complete_task.jpg)
+![create_task_pm](example/create_task_pm.jpg)
+![pm_role_user](example/pm_role_user.jpg)
 
 ## 🧪 Тесты
 ![tests](example/test_coverage.jpg)

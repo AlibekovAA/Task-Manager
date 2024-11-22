@@ -201,10 +201,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const kanbanBoard = document.createElement('div');
+        kanbanBoard.className = 'kanban-board';
+
+        const columns = {
+            backlog: createKanbanColumn('Не взято в работу', 0),
+            inProgress: createKanbanColumn('В работе', 1),
+            completed: createKanbanColumn('Завершено', 2)
+        };
+
+        Object.values(columns).forEach(column => {
+            kanbanBoard.appendChild(column);
+        });
+
         if (currentSort.field) {
             tasks.sort((a, b) => {
                 let comparison = 0;
-
                 if (currentSort.field === 'priority') {
                     comparison = b.priority - a.priority;
                 } else if (currentSort.field === 'due_date') {
@@ -212,16 +224,90 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const dateB = b.due_date ? new Date(b.due_date) : new Date(8640000000000000);
                     comparison = dateA - dateB;
                 }
-
                 return currentSort.order === 'desc' ? -comparison : comparison;
             });
         }
 
-        tasksList.innerHTML = '';
         tasks.forEach(task => {
             const taskElement = createTaskCard(task);
-            tasksList.appendChild(taskElement);
+            taskElement.draggable = true;
+
+            taskElement.addEventListener('dragstart', handleDragStart);
+            taskElement.addEventListener('dragend', handleDragEnd);
+
+            const status = task.status || 0;
+            const columnKey = status === 0 ? 'backlog' : status === 1 ? 'inProgress' : 'completed';
+            columns[columnKey].querySelector('.kanban-tasks').appendChild(taskElement);
         });
+
+        tasksList.appendChild(kanbanBoard);
+    }
+
+    function createKanbanColumn(title, status) {
+        const column = document.createElement('div');
+        column.className = 'kanban-column';
+        column.dataset.status = status;
+
+        column.innerHTML = `
+            <div class="kanban-column-header">${title}</div>
+            <div class="kanban-tasks"></div>
+        `;
+
+        const tasksContainer = column.querySelector('.kanban-tasks');
+
+        tasksContainer.addEventListener('dragover', handleDragOver);
+        tasksContainer.addEventListener('drop', handleDrop);
+
+        return column;
+    }
+
+    function handleDragStart(e) {
+        e.target.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', e.target.getAttribute('data-task-id'));
+    }
+
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    async function handleDrop(e) {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('text/plain');
+        const newStatus = parseInt(e.currentTarget.parentElement.dataset.status);
+
+        try {
+            const response = await fetch(`/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+
+            if (response.ok) {
+                await loadTasks();
+                showNotification(
+                    `Задача ${getStatusLabel(newStatus).toLowerCase()}`,
+                    'success'
+                );
+            } else {
+                const errorData = await response.json();
+                showNotification(errorData.detail || 'Ошибка при обновлении задачи', 'error');
+                await loadTasks();
+            }
+        } catch (error) {
+            console.error('Error updating task:', error);
+            showNotification('Ошибка при обновлении задачи', 'error');
+            await loadTasks();
+        }
     }
 
     function createTaskCard(task) {

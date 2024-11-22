@@ -5,9 +5,7 @@
     --success-dark: #27ae60;
     --danger-color: #e74c3c;
     --danger-dark: #c0392b;
-    --warning-color: #f1c40f;
     --text-primary: #ffffff;
-    --text-secondary: #e0e0e0;
     --background-light: rgba(255, 255, 255, 0.1);
     --border-color: rgba(255, 255, 255, 0.2);
     --shadow-color: rgba(0, 0, 0, 0.2);
@@ -128,7 +126,7 @@ body {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -433,7 +431,7 @@ button:disabled,
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: clamp(0.8rem, 2.5vw, 0.9rem);
 }
 
@@ -694,7 +692,7 @@ button:disabled,
 .info-label {
     font-weight: 500;
     min-width: 180px;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .info-value {
@@ -735,7 +733,7 @@ button:disabled,
 
 .password-requirements {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-top: 0.5rem;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.1);
@@ -779,7 +777,7 @@ button:disabled,
 
 .user-info p {
     margin: 0.25rem 0;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .user-actions {
@@ -909,11 +907,11 @@ button:disabled,
 
 .task-info p {
     margin: 5px 0;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .due-date {
-    color: var(--warning-color) !important;
+    color: var(--text-primary) !important;
     font-weight: 500;
 }
 
@@ -1042,7 +1040,7 @@ input:checked + .slider:before {
 }
 
 .status-btn.completed {
-    background: var(--warning-color);
+    background: var(--text-primary);
 }
 
 .status-btn.completed:hover {
@@ -1063,7 +1061,7 @@ input:checked + .slider:before {
 }
 
 .complete-btn.completed {
-    background: var(--warning-color);
+    background: var(--text-primary);
 }
 
 .complete-btn.completed:hover {
@@ -1152,7 +1150,7 @@ input:checked + .slider:before {
     display: block;
     padding: 5px 10px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -1250,7 +1248,7 @@ input:checked + .slider:before {
     display: block;
     padding: 5px 10px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -1538,7 +1536,7 @@ select#taskAssignee option {
 }
 
 .task-status {
-    color: var(--warning-color) !important;
+    color: var(--text-primary) !important;
     font-weight: 500;
 }
 
@@ -1641,4 +1639,106 @@ select#taskAssignee option {
 
 .file-actions button i {
     font-size: 16px;
+}
+
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-x: auto;
+    min-height: 400px;
+    max-height: 600px;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    border: 1px solid var(--border-color);
+}
+
+.kanban-column-header {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.kanban-tasks {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    min-height: 100px;
+    max-height: calc(100% - 50px);
+}
+
+.task-item {
+    cursor: grab;
+    margin-bottom: 10px;
+    --gradient-bg: linear-gradient(135deg, rgba(147, 0, 255, 0.4), rgba(89, 0, 255, 0.4));
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.kanban-tasks:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+    color: #666;
+    font-style: italic;
+}
+
+.kanban-tasks:empty::after {
+    content: 'Нет задач';
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.kanban-board::-webkit-scrollbar,
+.kanban-tasks::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track,
+.kanban-tasks::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb,
+.kanban-tasks::-webkit-scrollbar-thumb {
+    background: rgba(243, 128, 33, 0.6);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover,
+.kanban-tasks::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+.kanban-board::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.kanban-board,
+.kanban-tasks {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(243, 128, 33, 0.6) rgba(255, 255, 255, 0.1);
 }

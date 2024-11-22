@@ -1,5 +1,4 @@
 :root {
-    --text-secondary: #e0e0e0;
     --white: #fff;
     --primary-color: #f38021;
     --primary-dark: #fb6900;
@@ -108,7 +107,7 @@
 .author-description {
     font-size: 1rem;
     line-height: 1.6;
-    color: var(--text-secondary);
+    color: var(--white);
     margin-bottom: 2rem;
     transform: translateY(20px);
     opacity: 0;
