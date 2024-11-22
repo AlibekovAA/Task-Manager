@@ -2,11 +2,11 @@
 
 Современное веб-приложение для управления задачами с визуализацией дедлайнов и системой уведомлений.
 
-![Python](https://img.shields.io/badge/python-3.11-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.23-red.svg)
+![Python](https://img.shields.io/badge/python-3.12.3-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115.3-green.svg)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.36-red.svg)
 ![JWT](https://img.shields.io/badge/JWT-auth-orange.svg)
-![SQLite](https://img.shields.io/badge/SQLite-3.43.0-purple.svg)
+![SQLite](https://img.shields.io/badge/SQLite-3.45.1-purple.svg)
 
 ## 📋 Содержание
 
