@@ -10,13 +10,11 @@
     <link rel="stylesheet" href="static/css/style.css">
     <link rel="stylesheet" href="static/css/author-modal.css">
     <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-          media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
 </head>
 <body>
     <div class="institute-logo">
-        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti"
-             loading="lazy" width="150" height="auto">
+        <img src="/static/images/institute_ivti.png" alt="ИВТИ" class="logo-ivti" loading="lazy" width="150" height="auto">
     </div>
 
     <main class="auth-container">
@@ -26,22 +24,12 @@
                 <form id="loginForm" novalidate>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email"
-                               id="email"
-                               name="email"
-                               autocomplete="username"
-                               required
-                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}">
+                        <input type="email" id="email" name="email" autocomplete="username" required pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}">
                     </div>
                     <div class="form-group">
                         <label for="password">Пароль</label>
                         <div class="password-field-wrapper">
-                            <input type="password"
-                                   id="password"
-                                   name="password"
-                                   autocomplete="current-password"
-                                   required
-                                   minlength="6">
+                            <input type="password" id="password" name="password" autocomplete="current-password" required minlength="6">
                             <button type="button" class="password-toggle" tabindex="-1">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -60,27 +48,17 @@
                 <div class="reset-header">
                     <h2>Восстановление пароля</h2>
                 </div>
+
                 <div class="reset-password-step" id="stepOne">
                     <form id="resetPasswordForm" novalidate>
                         <div class="form-group">
                             <label for="resetEmail">Email</label>
-                            <input type="email"
-                                   id="resetEmail"
-                                   name="resetEmail"
-                                   autocomplete="username"
-                                   required
-                                   pattern="[a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,}">
+                            <input type="email" id="resetEmail" name="resetEmail" autocomplete="username" required pattern="[a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,}">
                         </div>
                         <div class="form-group">
                             <label for="secretWord">Кодовое слово</label>
                             <div class="password-field-wrapper">
-                                <input type="password"
-                                       id="secretWord"
-                                       name="secretWord"
-                                       autocomplete="off"
-                                       required
-                                       minlength="3"
-                                       maxlength="50">
+                                <input type="password" id="secretWord" name="secretWord" autocomplete="off" required minlength="3" maxlength="50">
                                 <button type="button" class="password-toggle" tabindex="-1">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -98,20 +76,11 @@
                     <form id="newPasswordForm" novalidate>
                         <div class="form-group">
                             <label for="newPassword">Новый пароль</label>
-                            <input type="password"
-                                   id="newPassword"
-                                   name="newPassword"
-                                   autocomplete="new-password"
-                                   required
-                                   minlength="6">
+                            <input type="password" id="newPassword" name="newPassword" autocomplete="new-password" required minlength="6">
                         </div>
                         <div class="form-group">
                             <label for="confirmNewPassword">Подтвердите новый пароль</label>
-                            <input type="password"
-                                   id="confirmNewPassword"
-                                   name="confirmNewPassword"
-                                   autocomplete="new-password"
-                                   required>
+                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" autocomplete="new-password" required>
                         </div>
                         <div class="error-message" id="newPasswordErrorMessage" aria-live="assertive" role="alert"></div>
                         <div class="modal-buttons">

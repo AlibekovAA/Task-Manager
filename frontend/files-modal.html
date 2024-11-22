@@ -13,7 +13,7 @@
                         <label class="file-select-btn">
                             <i class="fas fa-file-upload"></i>
                             <span>Выберите файл</span>
-                            <input type="file" id="taskFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="display: none;">
+                            <input type="file" id="taskFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" hidden>
                         </label>
                         <span class="file-not-selected">Файл не выбран</span>
                         <button type="submit" class="upload-btn">
@@ -36,9 +36,9 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Подтверждение удаления</h3>
                 </div>
-                <div class="delete-confirm-message">
+                <p class="delete-confirm-message">
                     Вы действительно хотите удалить этот файл? Это действие нельзя будет отменить.
-                </div>
+                </p>
                 <div class="delete-confirm-buttons">
                     <button class="delete-confirm-btn cancel" id="cancelFileDeleteBtn">Отмена</button>
                     <button class="delete-confirm-btn delete" id="confirmFileDeleteBtn">Удалить</button>

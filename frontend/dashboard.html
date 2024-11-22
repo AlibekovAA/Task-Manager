@@ -8,9 +8,12 @@
     <link rel="stylesheet" href="static/css/dashboard.css">
     <link rel="stylesheet" href="static/css/author-modal.css">
     <link rel="stylesheet" href="static/css/files-modal.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@4.5.0/index.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="static/js/dashboard.js" defer></script>
+    <script src="static/js/common.js" defer></script>
+    <script src="static/js/logo-animation.js" defer></script>
+    <script src="static/js/task_animation.js" defer></script>
 </head>
 <body>
     <div class="institute-logo">
@@ -18,8 +21,6 @@
     </div>
     <div class="dashboard">
         <nav class="sidebar">
-            <div class="logo">
-            </div>
             <ul class="nav-links">
                 <li class="active"><a href="/dashboard.html">Задачи</a></li>
                 <li><a href="/profile.html">Профиль</a></li>
@@ -110,8 +111,7 @@
             </header>
 
             <div class="tasks-container">
-                <div class="tasks-list" id="tasksList">
-                </div>
+                <div class="tasks-list" id="tasksList"></div>
             </div>
         </main>
     </div>
@@ -193,16 +193,11 @@
                         <button type="submit" class="btn-primary">Загрузить</button>
                     </form>
                 </div>
-                <div class="files-list" id="filesList">
-                </div>
+                <div class="files-list" id="filesList"></div>
             </div>
-
             <div class="delete-confirm-modal" id="deleteFileConfirmModal">
                 <div class="delete-confirm-content">
-                    <div class="delete-confirm-header">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Подтверждение удаления</h3>
-                    </div>
+                    <h3>Подтверждение удаления</h3>
                     <p>Вы действительно хотите удалить этот файл? Это действие нельзя будет отменить.</p>
                     <div class="delete-confirm-buttons">
                         <button class="btn-secondary" id="cancelFileDeleteBtn">Отмена</button>
@@ -213,12 +208,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js"></script>
-    <script src="static/js/common.js"></script>
-    <script src="static/js/logo-animation.js"></script>
-    <script src="static/js/task_animation.js"></script>
-</body>
-
     <div class="info-button" id="infoButton">i</div>
     <div class="author-modal" id="authorModal"></div>
+</body>
 </html>
