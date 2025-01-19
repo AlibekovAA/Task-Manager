@@ -58,41 +58,25 @@ def test_get_user_by_id(client, admin_headers):
 
 
 def test_update_user_role(client, admin_headers):
-    client.post(
+    default_response = client.post(
         "/users/",
         json={
-            "email": "admin@test.com",
-            "password": "adminpass123",
+            "email": "default@example.com",
+            "password": "defaultpass123",
             "secret_word": "secret",
-            "is_admin": True,
-            "role": "admin"
         }
     )
-    admin_token = client.post(
-        "/token",
-        data={
-            "username": "admin@test.com",
-            "password": "adminpass123"
-        }
-    ).json()["access_token"]
-    admin_headers = {"Authorization": f"Bearer {admin_token}"}
-
-    user_response = client.post(
-        "/users/",
-        json={
-            "email": "test@example.com",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
-    )
-    user_id = user_response.json()["id"]
+    assert default_response.status_code == 200 or default_response.status_code == 201
+    default_user_id = default_response.json()["id"]
 
     response = client.put(
-        f"/users/{user_id}/role",
+        f"/admin/users/{default_user_id}/role",
         headers=admin_headers,
-        json={"role": "admin"}
+        json={"role": "pm"}
     )
-    assert response.status_code == status.HTTP_200_OK
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "pm"
 
 
 def test_get_nonexistent_user(client, admin_headers):
