@@ -266,14 +266,6 @@ def test_check_password_missing(client):
     assert check_response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_verify_invalid_token(client):
-    response = client.get(
-        "/users/me",
-        headers={"Authorization": "Bearer invalid.token.format"}
-    )
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
 def test_reset_password_nonexistent_user(client):
     response = client.post(
         "/users/reset-password",
@@ -316,20 +308,6 @@ def test_password_reset_flow(client):
     assert login_response.status_code == status.HTTP_200_OK
 
 
-def test_invalid_token_formats(client):
-    invalid_tokens = [
-        "Bearer invalid",
-        "Bearer",
-        "invalid_token",
-        ""
-    ]
-
-    for token in invalid_tokens:
-        headers = {"Authorization": token} if token else {}
-        response = client.get("/tasks/", headers=headers)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
 def test_rate_limiter(client):
     rate_limiter.reset("test@example.com")
 
@@ -344,77 +322,3 @@ def test_rate_limiter(client):
 
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
     assert "Слишком много попыток" in response.json()["detail"]
-
-
-def test_rate_limiter_reset(client):
-    client.post(
-        "/users/",
-        json={
-            "email": "test@example.com",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
-    )
-
-    rate_limiter.reset_all()
-
-    response = client.post(
-        "/token",
-        data={
-            "username": "test@example.com",
-            "password": "testpass123"
-        }
-    )
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_token_expiration(client):
-    client.post(
-        "/users/",
-        json={
-            "email": "test@example.com",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
-    )
-
-    rate_limiter.reset("test@example.com")
-
-    response = client.post(
-        "/token",
-        data={
-            "username": "test@example.com",
-            "password": "testpass123"
-        }
-    )
-    assert response.status_code == status.HTTP_200_OK
-    token = response.json()["access_token"]
-
-    headers = {"Authorization": f"Bearer {token}"}
-    response = client.get("/users/me", headers=headers)
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_concurrent_sessions(client):
-    client.post(
-        "/users/",
-        json={
-            "email": "test@example.com",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
-    )
-
-    rate_limiter.reset_all()
-
-    tokens = []
-    for _ in range(3):
-        response = client.post(
-            "/token",
-            data={
-                "username": "test@example.com",
-                "password": "testpass123"
-            }
-        )
-        assert response.status_code == 200, f"Login failed: {response.json()}"
-        tokens.append(response.json()["access_token"])

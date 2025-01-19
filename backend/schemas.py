@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from enum import IntEnum
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 
 from .logger import setup_logger
 
@@ -99,7 +99,7 @@ class TaskFileResponse(TaskFileBase):
     created_at: datetime
     task_id: int
 
-    class Config:
+    class Config(ConfigDict):
         from_attributes = True
 
 
@@ -110,7 +110,7 @@ class TaskResponse(TaskBase):
     created_by_id: int
     files: List[TaskFileResponse] = []
 
-    class Config:
+    class Config(ConfigDict):
         from_attributes = True
 
 
@@ -120,7 +120,7 @@ class UserResponse(UserBase):
     role: str
     is_active: bool
 
-    class Config:
+    class Config(ConfigDict):
         from_attributes = True
 
 
