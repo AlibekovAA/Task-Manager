@@ -3,9 +3,12 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-dotenv
-passlib[bcrypt]
+passlib[bcrypt]>=1.7.4
 python-jose[cryptography]
-bcrypt==4.0.1
+bcrypt>=4.0.1
 email-validator
 pytest
 pytest-cov
+python-multipart
+aiofiles
+jinja2

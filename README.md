@@ -69,8 +69,31 @@
   - pytest --cov=backend --cov-report=html tests/
   - Откройте htmlcov/index.html в браузере для просмотра детального отчета.
 
-## Запуск сервера
-- uvicorn main:app --reload
+## Запуск приложения
+
+### Через Docker Compose (рекомендуется)
+1. Убедитесь, что у вас установлены Docker и Docker Compose
+2. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/AlibekovAA/task_manager.git
+   cd task_manager
+   ```
+3. Запустите приложение:
+   ```bash
+   docker-compose up --build
+   ```
+4. Откройте браузер и перейдите по адресу: http://localhost:8000
+
+### Локальный запуск
+1. Установите зависимости:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Запустите сервер:
+   ```bash
+   uvicorn main:app --reload
+   ```
+3. Откройте браузер и перейдите по адресу: http://localhost:8000
 
 ---
 ⭐️ Star на GitHub — это помогает!
