@@ -50,6 +50,7 @@ class TaskCreate(TaskBase):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=100)
     secret_word: str = Field(..., min_length=3, max_length=50)
+    group_id: int = Field(default=0)
 
 
 class TaskUpdate(TaskBase):

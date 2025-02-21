@@ -23,6 +23,7 @@ class User(Base):
     created_at = Column(DateTime, default=now_moscow, nullable=False)
     role = Column(String, default='default', nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    group_id = Column(Integer, default=0, nullable=False)
 
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan", foreign_keys="Task.user_id")
     created_tasks = relationship("Task", foreign_keys='Task.created_by_id', back_populates="created_by")

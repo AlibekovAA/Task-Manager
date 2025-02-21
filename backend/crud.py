@@ -52,7 +52,8 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db_user = models.User(
         email=user.email,
         password_hash=get_password_hash(user.password),
-        secret_word=get_password_hash(user.secret_word)
+        secret_word=get_password_hash(user.secret_word),
+        group_id=user.group_id
     )
     db.add(db_user)
     db.commit()
