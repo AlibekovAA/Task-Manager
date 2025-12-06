@@ -5,12 +5,7 @@ from backend import crud, schemas
 
 def test_create_user_with_role(client, db_session):
     user = crud.create_user(
-        db_session,
-        schemas.UserCreate(
-            email="test@example.com",
-            password="testpass123",
-            secret_word="secret"
-        )
+        db_session, schemas.UserCreate(email="test@example.com", password="testpass123", secret_word="secret")
     )
     user.role = "admin"
     db_session.commit()
@@ -20,25 +15,16 @@ def test_create_user_with_role(client, db_session):
 
 def test_email_validation(client):
     response = client.post(
-        "/users/",
-        json={
-            "email": "invalid_email",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
+        "/users/", json={"email": "invalid_email", "password": "testpass123", "secret_word": "secret"}
     )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_logging_user_actions(client, auth_headers, caplog):
     response = client.post(
         "/tasks/",
         headers=auth_headers,
-        json={
-            "title": "Test Task",
-            "description": "Test Description",
-            "deadline": "2024-12-31T23:59:59"
-        }
+        json={"title": "Test Task", "description": "Test Description", "deadline": "2024-12-31T23:59:59"},
     )
     assert response.status_code == status.HTTP_200_OK
 

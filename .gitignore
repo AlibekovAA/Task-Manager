@@ -1,5 +1,4 @@
-.*
-
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -17,12 +16,66 @@ parts/
 sdist/
 var/
 wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-.env
-__pycache__/
-*.pyc
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.venv
+env.bak/
+venv.bak/
+
+# Testing
 .pytest_cache/
 .coverage
 htmlcov/
-uploads/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
 *.db
+*.sqlite
+*.sqlite3
+task_manager.db
+
+# Logs
+*.log
+app.log
+*.log.*
+
+# Application specific
+uploads/

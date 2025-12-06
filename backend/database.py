@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import event
-
 import logging
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm.session import Session
 
 logger = logging.getLogger(__name__)
 
@@ -10,10 +10,12 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./task_manager.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    connect_args={"check_same_thread": False},
+    pool_pre_ping=True,
+    echo=False,
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker[Session](autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
@@ -30,7 +32,7 @@ def set_sqlite_timezone(dbapi_connection, connection_record):
         logger.error(f"Error setting timezone: {str(e)}")
 
 
-event.listen(engine, 'connect', set_sqlite_timezone)
+event.listen(engine, "connect", set_sqlite_timezone)
 
 
 def get_db():

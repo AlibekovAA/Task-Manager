@@ -4,10 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from backend.database import Base
+from backend.database import Base, get_db
+from backend.utils.rate_limiter import rate_limiter
 from main import app
-from backend.utils import get_db
-from backend.rate_limiter import rate_limiter
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
@@ -46,22 +45,9 @@ def client(db_session):
 
 @pytest.fixture
 def user_headers(client):
-    client.post(
-        "/users/",
-        json={
-            "email": "user@example.com",
-            "password": "userpass123",
-            "secret_word": "secret"
-        }
-    )
+    client.post("/users/", json={"email": "user@example.com", "password": "userpass123", "secret_word": "secret"})
 
-    response = client.post(
-        "/token",
-        data={
-            "username": "user@example.com",
-            "password": "userpass123"
-        }
-    )
+    response = client.post("/token", data={"username": "user@example.com", "password": "userpass123"})
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -70,14 +56,9 @@ def user_headers(client):
 def create_task(client, auth_headers):
     def _create_task(title="Test Task", description="Test Description", deadline="2024-12-31T23:59:59"):
         return client.post(
-            "/tasks/",
-            headers=auth_headers,
-            json={
-                "title": title,
-                "description": description,
-                "deadline": deadline
-            }
+            "/tasks/", headers=auth_headers, json={"title": title, "description": description, "deadline": deadline}
         )
+
     return _create_task
 
 
@@ -94,22 +75,11 @@ def auth_headers(client):
     rate_limiter.blocked_until = {}
 
     register_response = client.post(
-        "/users/",
-        json={
-            "email": "test@example.com",
-            "password": "testpass123",
-            "secret_word": "secret"
-        }
+        "/users/", json={"email": "test@example.com", "password": "testpass123", "secret_word": "secret"}
     )
     assert register_response.status_code == 200, f"User registration failed: {register_response.json()}"
 
-    login_response = client.post(
-        "/token",
-        data={
-            "username": "test@example.com",
-            "password": "testpass123"
-        }
-    )
+    login_response = client.post("/token", data={"username": "test@example.com", "password": "testpass123"})
     assert login_response.status_code == 200, f"Login failed: {login_response.json()}"
 
     token = login_response.json()["access_token"]
