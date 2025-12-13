@@ -1,149 +1,141 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const registerForm = document.getElementById('registerForm');
-    const errorMessage = document.getElementById('errorMessage');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const secretWordInput = document.getElementById('secretWord');
+  const registerForm = document.getElementById('registerForm');
+  const errorMessage = document.getElementById('errorMessage');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const secretWordInput = document.getElementById('secretWord');
 
-    const validateEmail = (email) => {
-        const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-        return emailPattern.test(email.toLowerCase());
-    };
+  emailInput.addEventListener('input', () => {
+    if (!validateEmail(emailInput.value)) {
+      emailInput.setCustomValidity('Введите корректный email адрес');
+      showErrorMessage(errorMessage, 'Введите корректный email адрес');
+    } else {
+      emailInput.setCustomValidity('');
+      hideMessage(errorMessage);
+    }
+  });
 
-    const validatePassword = (password) => {
-        return password.length >= 6;
-    };
+  passwordInput.addEventListener('input', () => {
+    if (!validatePassword(passwordInput.value)) {
+      passwordInput.setCustomValidity(
+        'Пароль должен содержать не менее 6 символов',
+      );
+      showErrorMessage(
+        errorMessage,
+        'Пароль должен содержать не менее 6 символов',
+      );
+    } else {
+      passwordInput.setCustomValidity('');
+      hideMessage(errorMessage);
+    }
+  });
 
-    const validateSecretWord = (secretWord) => {
-        return secretWord.length >= 3 && secretWord.length <= 50;
-    };
+  secretWordInput.addEventListener('input', () => {
+    if (!validateSecretWord(secretWordInput.value)) {
+      secretWordInput.setCustomValidity(
+        'Кодовое слово должно содержать от 3 до 50 символов',
+      );
+      showErrorMessage(
+        errorMessage,
+        'Кодовое слово должно содержать от 3 до 50 символов',
+      );
+    } else {
+      secretWordInput.setCustomValidity('');
+      hideMessage(errorMessage);
+    }
+  });
 
-    emailInput.addEventListener('input', () => {
-        if (!validateEmail(emailInput.value)) {
-            emailInput.setCustomValidity('Введите корректный email адрес');
-            errorMessage.textContent = 'Введите корректный email адрес';
-            errorMessage.style.display = 'block';
-        } else {
-            emailInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
-        }
-    });
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessage(errorMessage);
 
-    passwordInput.addEventListener('input', () => {
-        if (!validatePassword(passwordInput.value)) {
-            passwordInput.setCustomValidity('Введите корректный пароль');
-            errorMessage.textContent = 'Введите корректный пароль';
-            errorMessage.style.display = 'block';
-        } else {
-            passwordInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
-        }
-    });
+    const formData = new FormData(registerForm);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+    const secretWord = formData.get('secretWord');
 
-    secretWordInput.addEventListener('input', () => {
-        if (!validateSecretWord(secretWordInput.value)) {
-            secretWordInput.setCustomValidity('Введите корректное кодовое слово');
-            errorMessage.textContent = 'Введите корректное кодовое слово';
-            errorMessage.style.display = 'block';
-        } else {
-            secretWordInput.setCustomValidity('');
-            errorMessage.style.display = 'none';
-        }
-    });
+    if (!validateEmail(email)) {
+      showErrorMessage(errorMessage, 'Введите корректный email адрес');
+      return;
+    }
 
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    if (!validatePassword(password)) {
+      showErrorMessage(
+        errorMessage,
+        'Пароль должен содержать не менее 6 символов',
+      );
+      return;
+    }
 
-        errorMessage.style.display = 'none';
-        errorMessage.textContent = '';
+    if (password !== confirmPassword) {
+      showErrorMessage(errorMessage, 'Пароли не совпадают');
+      return;
+    }
 
-        const formData = new FormData(registerForm);
-        const email = formData.get('email');
-        const password = formData.get('password');
-        const confirmPassword = formData.get('confirmPassword');
-        const secretWord = formData.get('secretWord');
+    if (!validateSecretWord(secretWord)) {
+      showErrorMessage(
+        errorMessage,
+        'Кодовое слово должно содержать от 3 до 50 символов',
+      );
+      return;
+    }
 
-        if (!validateEmail(email)) {
-            errorMessage.textContent = 'Введите корректный email адрес';
-            errorMessage.style.display = 'block';
-            return;
-        }
+    try {
+      const response = await fetch('/users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.toLowerCase(),
+          password: password,
+          secret_word: secretWord,
+        }),
+      });
 
-        if (!validatePassword(password)) {
-            errorMessage.textContent = 'Введите корректный пароль';
-            errorMessage.style.display = 'block';
-            return;
-        }
+      const data = await response.json();
 
-        if (password !== confirmPassword) {
-            errorMessage.textContent = 'Пароли не совпадают';
-            errorMessage.style.display = 'block';
-            return;
-        }
+      if (response.ok) {
+        window.location.href = '/?registered=true';
+      } else {
+        let errorMsg = 'Ошибка при регистрации';
 
-        if (!validateSecretWord(secretWord)) {
-            errorMessage.textContent = 'Введите корректное кодовое слово';
-            errorMessage.style.display = 'block';
-            return;
-        }
+        if (response.status === 422) {
+          const errors = data.detail;
+          if (Array.isArray(errors)) {
+            const passwordError = errors.find((error) =>
+              error.loc?.includes('password'),
+            );
+            const emailError = errors.find((error) =>
+              error.loc?.includes('email'),
+            );
 
-        try {
-            const response = await fetch('/users/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email.toLowerCase(),
-                    password: password,
-                    secret_word: secretWord
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                window.location.href = '/?registered=true';
+            if (passwordError) {
+              errorMsg = 'Пароль должен содержать не менее 6 символов';
+            } else if (emailError) {
+              errorMsg = 'Пользователь с таким email уже существует';
             } else {
-                if (response.status === 422) {
-                    const errors = data.detail;
-                    const passwordError = errors.find(error => error.loc.includes('password'));
-                    const emailError = errors.find(error => error.loc.includes('email'));
-
-                    errorMessage.style.display = 'block';
-                    if (passwordError) {
-                        errorMessage.textContent = 'Введите корректный пароль';
-                    } else if (emailError) {
-                        errorMessage.textContent = 'Введите корректный email адрес';
-                    } else {
-                        errorMessage.textContent = 'Проверьте правильность введенных данных';
-                    }
-                } else {
-                    errorMessage.style.display = 'block';
-                    errorMessage.textContent = data.detail || 'Ошибка при регистрации';
-                }
+              errorMsg = getErrorMessage(
+                data,
+                'Проверьте правильность введенных данных',
+              );
             }
-        } catch (error) {
-            console.error('Error:', error);
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = 'Ошибка соединения с сервером';
-        }
-    });
-
-    document.querySelectorAll('.password-toggle').forEach(button => {
-    button.addEventListener('click', (e) => {
-        const input = e.currentTarget.previousElementSibling;
-        const icon = e.currentTarget.querySelector('i');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+          } else {
+            errorMsg = getErrorMessage(data, errorMsg);
+          }
         } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+          errorMsg = getErrorMessage(data, errorMsg);
         }
-    });
-});
+
+        showErrorMessage(errorMessage, errorMsg);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showErrorMessage(
+        errorMessage,
+        'Ошибка соединения с сервером. Проверьте подключение к интернету',
+      );
+    }
+  });
 });

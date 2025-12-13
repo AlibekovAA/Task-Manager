@@ -1,273 +1,244 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('registered') === 'true') {
-        const errorMessage = document.getElementById('errorMessage');
-        errorMessage.style.color = '#388e3c';
-        errorMessage.textContent = 'Регистрация успешна! Теперь вы можете войти.';
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('registered') === 'true') {
+    const errorMessage = document.getElementById('errorMessage');
+    showSuccessMessage(
+      errorMessage,
+      'Регистрация успешна! Теперь вы можете войти.',
+    );
+  }
+
+  const loginForm = document.getElementById('loginForm');
+  const errorMessage = document.getElementById('errorMessage');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessage(errorMessage);
+
+    const formData = new FormData(loginForm);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
+    if (!validateEmail(email)) {
+      showErrorMessage(
+        errorMessage,
+        'Пожалуйста, введите корректный email адрес',
+      );
+      return;
     }
 
-    const loginForm = document.getElementById('loginForm');
-    const errorMessage = document.getElementById('errorMessage');
+    if (!validatePassword(password)) {
+      showErrorMessage(
+        errorMessage,
+        'Пароль должен содержать не менее 6 символов',
+      );
+      return;
+    }
 
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    try {
+      const response = await fetch('/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `username=${encodeURIComponent(
+          email,
+        )}&password=${encodeURIComponent(password)}`,
+      });
 
-        const formData = new FormData(loginForm);
-        const email = formData.get('email');
-        const password = formData.get('password');
+      const data = await response.json();
 
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-            errorMessage.textContent = 'Пожалуйста, введите корректный email адрес';
-            return;
+      if (response.ok) {
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+        localStorage.setItem('user_role', data.role);
+        window.location.href = '/dashboard.html';
+      } else {
+        const errorMsg = getErrorMessage(
+          data,
+          'Ошибка авторизации. Проверьте правильность введенных данных',
+        );
+        showErrorMessage(errorMessage, errorMsg);
+      }
+    } catch (error) {
+      showErrorMessage(
+        errorMessage,
+        'Ошибка соединения с сервером. Проверьте подключение к интернету',
+      );
+      console.error('Error:', error);
+    }
+  });
+
+  const loginSection = document.getElementById('loginSection');
+  const resetSection = document.getElementById('resetSection');
+  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+  const backToLogin = document.getElementById('backToLogin');
+  const resetPasswordForm = document.getElementById('resetPasswordForm');
+  const newPasswordForm = document.getElementById('newPasswordForm');
+  const stepOne = document.getElementById('stepOne');
+  const stepTwo = document.getElementById('stepTwo');
+
+  let resetEmail = '';
+  let resetSecretWord = '';
+
+  forgotPasswordBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginSection.style.display = 'none';
+    resetSection.style.display = 'block';
+    resetPasswordForm.reset();
+    newPasswordForm.reset();
+    stepOne.style.display = 'block';
+    stepTwo.style.display = 'none';
+  });
+
+  backToLogin.addEventListener('click', () => {
+    resetSection.style.display = 'none';
+    loginSection.style.display = 'block';
+    resetPasswordForm.reset();
+    newPasswordForm.reset();
+    document.getElementById('resetErrorMessage').textContent = '';
+    document.getElementById('newPasswordErrorMessage').textContent = '';
+  });
+
+  resetPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = resetPasswordForm.resetEmail.value;
+    const secretWord = resetPasswordForm.secretWord.value;
+    const errorMessage = document.getElementById('resetErrorMessage');
+
+    hideMessage(errorMessage);
+
+    if (!validateEmail(email)) {
+      showErrorMessage(
+        errorMessage,
+        'Пожалуйста, введите корректный email адрес',
+      );
+      return;
+    }
+
+    if (!validateSecretWord(secretWord)) {
+      showErrorMessage(
+        errorMessage,
+        'Кодовое слово должно содержать от 3 до 50 символов',
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch('/users/verify-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          secret_word: secretWord,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        resetEmail = email;
+        resetSecretWord = secretWord;
+        stepOne.style.display = 'none';
+        stepTwo.style.display = 'block';
+        hideMessage(errorMessage);
+      } else {
+        let errorMsg = 'Произошла ошибка при проверке данных';
+
+        switch (response.status) {
+          case 404:
+            errorMsg = 'Пользователь с таким email не найден';
+            break;
+          case 400:
+            errorMsg = 'Неверное кодовое слово';
+            break;
+          case 422:
+            errorMsg = 'Проверьте правильность введенных данных';
+            break;
+          default:
+            errorMsg = getErrorMessage(data, errorMsg);
         }
 
-        if (password.length < 6) {
-            errorMessage.textContent = 'Введите корректный пароль';
-            return;
-        }
+        showErrorMessage(errorMessage, errorMsg);
+        setTimeout(() => hideMessage(errorMessage), 10000);
+      }
+    } catch (error) {
+      showErrorMessage(
+        errorMessage,
+        'Ошибка соединения с сервером. Проверьте подключение к интернету',
+      );
+      setTimeout(() => hideMessage(errorMessage), 10000);
+    }
+  });
 
-        try {
-            const response = await fetch('/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-            });
+  newPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newPassword = newPasswordForm.newPassword.value;
+    const confirmPassword = newPasswordForm.confirmNewPassword.value;
+    const errorMessage = document.getElementById('newPasswordErrorMessage');
 
-            const data = await response.json();
+    hideMessage(errorMessage);
 
-            if (response.ok) {
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('user_role', data.role);
-                window.location.href = '/dashboard.html';
-            } else {
-                errorMessage.textContent = data.detail || 'Ошибка авторизации';
-            }
-        } catch (error) {
-            errorMessage.textContent = 'Ошибка соединения с сервером';
-            console.error('Error:', error);
-        }
-    });
+    if (!validatePassword(newPassword)) {
+      showErrorMessage(
+        errorMessage,
+        'Пароль должен содержать не менее 6 символов',
+      );
+      return;
+    }
 
-    const loginSection = document.getElementById('loginSection');
-    const resetSection = document.getElementById('resetSection');
-    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
-    const backToLogin = document.getElementById('backToLogin');
-    const resetPasswordForm = document.getElementById('resetPasswordForm');
-    const newPasswordForm = document.getElementById('newPasswordForm');
-    const stepOne = document.getElementById('stepOne');
-    const stepTwo = document.getElementById('stepTwo');
+    if (newPassword !== confirmPassword) {
+      showErrorMessage(errorMessage, 'Пароли не совпадают');
+      return;
+    }
 
-    let resetEmail = '';
-    let resetSecretWord = '';
+    try {
+      const response = await fetch('/users/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: resetEmail,
+          secret_word: resetSecretWord,
+          new_password: newPassword,
+        }),
+      });
 
-    forgotPasswordBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginSection.style.display = 'none';
-        resetSection.style.display = 'block';
-        resetPasswordForm.reset();
-        newPasswordForm.reset();
-        stepOne.style.display = 'block';
-        stepTwo.style.display = 'none';
-    });
-
-    backToLogin.addEventListener('click', () => {
+      if (response.ok) {
         resetSection.style.display = 'none';
         loginSection.style.display = 'block';
         resetPasswordForm.reset();
         newPasswordForm.reset();
-        document.getElementById('resetErrorMessage').textContent = '';
-        document.getElementById('newPasswordErrorMessage').textContent = '';
-    });
+        const loginErrorMessage = document.getElementById('errorMessage');
+        showSuccessMessage(
+          loginErrorMessage,
+          'Пароль успешно изменен! Теперь вы можете войти.',
+        );
+        resetEmail = '';
+        resetSecretWord = '';
+      } else {
+        const data = await response.json();
+        const errorMsg = getErrorMessage(
+          data,
+          'Ошибка при смене пароля. Попробуйте позже',
+        );
+        showErrorMessage(errorMessage, errorMsg);
+      }
+    } catch (error) {
+      showErrorMessage(
+        errorMessage,
+        'Ошибка соединения с сервером. Проверьте подключение к интернету',
+      );
+    }
+  });
 
-    resetPasswordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = resetPasswordForm.resetEmail.value;
-        const secretWord = resetPasswordForm.secretWord.value;
-        const errorMessage = document.getElementById('resetErrorMessage');
-
-        errorMessage.style.display = 'none';
-        errorMessage.textContent = '';
-
-        try {
-            const response = await fetch('/users/verify-reset', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    secret_word: secretWord
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                resetEmail = email;
-                resetSecretWord = secretWord;
-                stepOne.style.display = 'none';
-                stepTwo.style.display = 'block';
-                errorMessage.textContent = '';
-                errorMessage.style.display = 'none';
-            } else {
-                errorMessage.style.color = '#ff3333';
-                errorMessage.style.display = 'block';
-
-                switch (response.status) {
-                    case 404:
-                        errorMessage.textContent = 'Пользователь с таким email не найден';
-                        break;
-                    case 400:
-                        errorMessage.textContent = 'Неверное кодовое слово';
-                        break;
-                    case 422:
-                        errorMessage.textContent = 'Проверьте правильность введенных данных';
-                        break;
-                    default:
-                        errorMessage.textContent = data.detail || 'Произошла ошибка при проверке данных';
-                }
-
-                setTimeout(() => {
-                    errorMessage.style.display = 'none';
-                    errorMessage.textContent = '';
-                }, 10000);
-            }
-        } catch (error) {
-            errorMessage.style.color = '#ff3333';
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = 'Ошибка соединения с сервером. Попробуйте позже.';
-
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-                errorMessage.textContent = '';
-            }, 10000);
-        }
-    });
-
-    newPasswordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const newPassword = newPasswordForm.newPassword.value;
-        const confirmPassword = newPasswordForm.confirmNewPassword.value;
-
-        if (newPassword !== confirmPassword) {
-            document.getElementById('newPasswordErrorMessage').textContent =
-                'Пароли не совпадают';
-            return;
-        }
-
-        try {
-            const response = await fetch('/users/reset-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: resetEmail,
-                    secret_word: resetSecretWord,
-                    new_password: newPassword
-                }),
-            });
-
-            if (response.ok) {
-                resetSection.style.display = 'none';
-                loginSection.style.display = 'block';
-                resetPasswordForm.reset();
-                newPasswordForm.reset();
-                const errorMessage = document.getElementById('errorMessage');
-                errorMessage.style.color = '#388e3c';
-                errorMessage.textContent = 'Пароль успешно изменен! Теперь вы можете войти.';
-                resetEmail = '';
-                resetSecretWord = '';
-            } else {
-                const data = await response.json();
-                document.getElementById('newPasswordErrorMessage').textContent =
-                    data.detail || 'Ошибка при смене пароля';
-            }
-        } catch (error) {
-            document.getElementById('newPasswordErrorMessage').textContent =
-                'Ошибка соединения с сервером';
-        }
-    });
-
-    backToStepOne.addEventListener('click', () => {
-        stepTwo.style.display = 'none';
-        stepOne.style.display = 'block';
-        document.getElementById('newPasswordErrorMessage').textContent = '';
-        newPasswordForm.reset();
-    });
-
-    document.querySelectorAll('.password-toggle').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const input = e.currentTarget.previousElementSibling;
-            const icon = e.currentTarget.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    });
+  backToStepOne.addEventListener('click', () => {
+    stepTwo.style.display = 'none';
+    stepOne.style.display = 'block';
+    hideMessage(document.getElementById('newPasswordErrorMessage'));
+    newPasswordForm.reset();
+  });
 });
-
-async function refreshToken() {
-    try {
-        const refresh_token = localStorage.getItem('refresh_token');
-        if (!refresh_token) return false;
-
-        const response = await fetch('/token/refresh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refresh_token }),
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('access_token', data.access_token);
-            return true;
-        }
-        return false;
-    } catch {
-        return false;
-    }
-}
-
-async function fetchWithToken(url, options = {}) {
-    let token = localStorage.getItem('access_token');
-
-    let response = await fetch(url, {
-        ...options,
-        headers: {
-            ...options.headers,
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (response.status === 401) {
-        const refreshed = await refreshToken();
-        if (refreshed) {
-            token = localStorage.getItem('access_token');
-            response = await fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-        } else {
-            window.location.href = '/';
-        }
-    }
-
-    return response;
-}
